@@ -1,0 +1,76 @@
+generated: '2026-09-19'
+method: searched
+source: https://agent-ready.dev/docs/api#rate-limits-and-retry
+additional_sources:
+- https://agent-ready.dev/pricing#rate-limits
+- https://agent-ready.dev/.well-known/agent-permissions.json
+- openapi/agent-ready-dev-openapi.yml (429 responses declare X-RateLimit-Limit, X-RateLimit-Remaining and Retry-After headers)
+corroboration: >-
+  Live unauthenticated GET https://agent-ready.dev/api/v1/ask?query=… on 2026-09-19 returned HTTP 200 with
+  x-ratelimit-limit: 30 and x-ratelimit-remaining: 29 — the documented header family, observed on a real
+  response. The 30 is the public ask limit, which the docs do not quote numerically; the Pro numbers below are
+  documented but were not observed (no key was used).
+confidence: high
+limit_count: 6
+headers:
+- {name: X-RateLimit-Limit, meaning: Maximum requests permitted in the current window, observed_value: 30 (ask, unauthenticated)}
+- {name: X-RateLimit-Remaining, meaning: Requests still available in the current window, observed_value: 29}
+- {name: Retry-After, meaning: 'Seconds until a slot frees in the sliding window; present on 429'}
+status_on_exhaustion: 429
+scopes:
+- scope: per-key
+  surface: POST /api/v1/scans (startScan) — and the hosted MCP endpoint, which shares the counter
+  window: 1 minute (sliding)
+  limit: 10
+  unit: requests
+  burst: null
+  status_on_exhaustion: 429
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After]
+  source: https://agent-ready.dev/docs/api#rate-limits-and-retry
+- scope: per-key
+  surface: POST /api/v1/scans (startScan) — and the hosted MCP endpoint
+  window: 1 day (sliding)
+  limit: 200
+  unit: requests
+  status_on_exhaustion: 429
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After]
+  source: https://agent-ready.dev/docs/api#rate-limits-and-retry
+- scope: per-key
+  surface: GET /api/v1/scans/{id} (getScan, polling)
+  window: 1 minute
+  limit: 120
+  unit: requests
+  status_on_exhaustion: 429
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After]
+  source: https://agent-ready.dev/docs/api#rate-limits-and-retry
+- scope: per-ip
+  surface: GET/POST /api/v1/ask (public NLWeb)
+  window: unspecified
+  limit: 30
+  unit: requests
+  status_on_exhaustion: 429
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining]
+  source: 'observed live 2026-09-19 (x-ratelimit-limit: 30); window length not documented'
+- scope: per-account
+  surface: scans (quota, not a request rate)
+  window: 1 month
+  limit: 50
+  unit: scans (Pro); 10 per 30 days signed-in Free
+  status_on_exhaustion: 429 / quota exhausted
+  source: https://agent-ready.dev/pricing
+- scope: per-ip
+  surface: POST /api/scan (anonymous free tier; also what keyless CLI / stdio MCP scans use)
+  window: 30 days
+  limit: 3
+  unit: scans
+  status_on_exhaustion: 429 — or opt in to pay per scan via x402/MPP instead
+  source: https://agent-ready.dev/pricing#how-x402-pay-per-scan-works
+unlimited:
+- surface: GET /api/v1/scans (listScans)
+  note: '"not rate-limited beyond your account''s overall fair-use" (docs).'
+- surface: MCP Apps endpoint /api/apps/mcp
+  note: Rate-limited per opaque ChatGPT user id (privacy policy §9); numeric limit not published.
+retry_guidance: >-
+  On 429 honour Retry-After — wait at least that long. On transient 5xx use exponential backoff with full
+  jitter: delay = random(0, 250 ms × 2^attempt), capped at 30 s, over ~5 attempts. Never retry a 4xx other
+  than 429. (Verbatim strategy from the docs, which also ship a TypeScript callWithRetry sample.)

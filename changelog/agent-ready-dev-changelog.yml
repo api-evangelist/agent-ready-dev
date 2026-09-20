@@ -1,0 +1,84 @@
+generated: '2026-09-19'
+method: searched
+source: https://github.com/mlava/agent-ready-mcp/releases
+checked: '2026-09-19'
+summary: >-
+  Agent Ready's deprecation policy promises to announce removals "in the changelog", but no changelog page is
+  published on agent-ready.dev: /changelog, /changelog.md, /docs/changelog and /api/v1/changelog all return 404
+  and the sitemap lists none. The only dated, public change record is the GitHub Releases feed of the
+  first-party packages — agent-ready-mcp (the busiest, 0.6.1 -> 0.7.7 across 2026-07-19..2026-09-07) and
+  agent-ready-cli (a single v0.1.1 release on 2026-05-31; npm is at 0.6.1). Those releases track the client
+  wrappers, and their notes double as a record of the hosted scanner's check-registry growth (59 -> 70 -> 71
+  -> 72 checks). The markdown mirrors also carry last_updated frontmatter, recorded below as the only per-page
+  change signal on the site itself.
+scheme:
+  api_versioning: uri-path (/api/v1)
+  api_version_current: v1
+  spec_version: 1.0.0
+  note: info.version 1.0.0 in the OpenAPI; no dated API changelog.
+site_changelog:
+  url: null
+  probed:
+  - {url: https://agent-ready.dev/changelog, status: 404}
+  - {url: https://agent-ready.dev/changelog.md, status: 404}
+  - {url: https://agent-ready.dev/docs/changelog, status: 404}
+  - {url: https://agent-ready.dev/api/v1/changelog, status: 404}
+  page_last_updated:
+  - {page: https://agent-ready.dev/docs, last_updated: '2026-09-02'}
+  - {page: https://agent-ready.dev/about, last_updated: '2026-09-02'}
+  - {page: https://agent-ready.dev/specs, last_updated: '2026-09-02'}
+  - {page: https://agent-ready.dev/mcp, last_updated: '2026-09-02'}
+  - {page: https://agent-ready.dev/docs/api, last_updated: '2026-07-18'}
+  - {page: https://agent-ready.dev/pricing, last_updated: '2026-07-18'}
+  - {page: https://agent-ready.dev/auth, last_updated: '2026-06-18'}
+  - {page: https://agent-ready.dev/privacy, last_updated: '2026-06-01'}
+  - {page: https://agent-ready.dev/llms.txt, last_updated: '2026-05-31'}
+  - {page: https://agent-ready.dev/quickstart, last_updated: '2026-05-28'}
+  - {page: https://agent-ready.dev/terms, last_updated: '2026-04-19'}
+feeds:
+  rss: null
+  atom: null
+  json: null
+  github_releases:
+  - https://github.com/mlava/agent-ready-mcp/releases
+  - https://github.com/mlava/agent-ready-cli/releases
+entries:
+- version: agent-ready-mcp v0.7.7
+  date: '2026-09-07'
+  breaking: false
+  highlights: [Patch release (compare v0.7.6...v0.7.7).]
+- version: agent-ready-mcp v0.7.6
+  date: '2026-09-07'
+  breaking: false
+  highlights: ['Resync embedded MCP resource snapshots and counts for check P25 — hosted registry 71 -> 72 checks.']
+- version: agent-ready-mcp v0.7.5 / v0.7.4
+  date: '2026-08-22'
+  breaking: false
+  highlights: [Patch releases.]
+- version: agent-ready-mcp v0.7.3
+  date: '2026-08-17'
+  breaking: false
+  highlights: ['Resync resource snapshots with the hosted registry after check C22 "Declared endpoints crawlable" shipped — 70 checks.']
+- version: agent-ready-mcp v0.7.2
+  date: '2026-07-31'
+  breaking: false
+  highlights: [Resync resources for the 23-check accessibility suite.]
+- version: agent-ready-mcp v0.7.0
+  date: '2026-07-27'
+  breaking: false
+  highlights: [Surface the save-this-scan link on keyless scans.]
+- version: agent-ready-mcp v0.6.1
+  date: '2026-07-19'
+  breaking: false
+  highlights: ['Send X-Agent-Ready-Client: mcp-npm on keyless scans.']
+- version: agent-ready-scanner (CLI) 0.6.1
+  date: '2026-07-31'
+  breaking: false
+  highlights: [Latest npm publish of the CLI; GitHub has one tagged release (v0.1.1, 2026-05-31).]
+- version: agent-ready-client (SDK) 0.3.1
+  date: '2026-07-16'
+  breaking: false
+  highlights: [Latest npm and PyPI publish of the JavaScript and Python SDKs.]
+observed_change_cadence:
+  window: '2026-05-31 to 2026-09-07'
+  note: Roughly monthly package releases; the hosted scanner's check registry grew from 59 to 72 checks over the summer per the release notes.

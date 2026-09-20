@@ -1,0 +1,57 @@
+generated: '2026-09-19'
+method: searched
+source: https://agent-ready.dev/docs/api#versioning-and-deprecation-policy + https://status.agent-ready.dev/ + https://agent-ready.dev/terms + https://agent-ready.dev/about
+versioning:
+  scheme: uri-path
+  current: v1
+  base: https://agent-ready.dev/api/v1
+  spec_version: 1.0.0
+  policy: >-
+    Stable endpoints live under /api/v1; breaking changes ship behind a new version prefix (/api/v2, …) and
+    never on the existing one. Unversioned public conveniences also exist outside the prefix: POST /api/scan
+    (anonymous free tier), /ask (NLWeb alias of /api/v1/ask) and /api/x402/scan (paid lane).
+  docs: https://agent-ready.dev/docs/api#versioning-and-deprecation-policy
+deprecation:
+  policy_documented: true
+  policy_url: https://agent-ready.dev/docs/api#versioning-and-deprecation-policy
+  sunset_header: true
+  deprecation_header: true
+  notice_period: at least 90 days before removal
+  mechanism: >-
+    When an endpoint is scheduled for removal the provider sets Sunset (RFC 8594) and Deprecation (RFC 9745)
+    response headers with the planned removal date, marks the operation deprecated: true in the OpenAPI, and
+    announces it in the changelog. The same policy text is embedded in the OpenAPI info.description, so it
+    travels with the contract.
+  deprecated_operations: []
+  notes: >-
+    "No /api/v1 endpoint is currently deprecated" (docs, 2026-07-18) and no operation in the 8-operation
+    OpenAPI carries deprecated: true, so no Sunset header has been observed — the commitment is policy-level.
+    The changelog the policy refers to has no public URL (see changelog/agent-ready-dev-changelog.yml).
+status_page:
+  url: https://status.agent-ready.dev/
+  provider: Better Stack
+  machine_readable_api: false
+  probed:
+  - url: https://status.agent-ready.dev/
+    status: 200
+    checked: '2026-09-19'
+    note: 'Better Stack status page (page <title> "Better Stack"); named on /about as "Live uptime and incident history for the scanner and API".'
+  - url: https://status.agent-ready.dev/api/v2/summary.json
+    status: 301
+    checked: '2026-09-19'
+    note: Not an Atlassian Statuspage; no summary.json API.
+  health_endpoint:
+    url: https://agent-ready.dev/api/health
+    status: 200
+    body: '{"ok":true}'
+    note: Named as the status relation for the Scans API in the RFC 9727 api-catalog linkset.
+sla:
+  url: https://agent-ready.dev/terms
+  uptime_target: null
+  notes: 'Terms §5: "We aim for high availability but do not offer a formal service-level agreement." Provided "as is" and "as available".'
+self_monitoring:
+  url: https://agent-ready.dev/.well-known/agent-readiness-status.json
+  note: The provider re-scans its own site nightly against its full check suite and publishes the machine-readable result (85/86 checks, lastVerified 2026-09-19).
+support_lifetime:
+  stated_period: null
+  note: No support period or end-of-life commitment is published beyond the 90-day deprecation notice.

@@ -1,0 +1,154 @@
+generated: '2026-09-19'
+method: searched
+source: >-
+  https://agent-ready.dev/docs/api (API & integrations — authentication, rate limits and retry, versioning and
+  deprecation policy), https://agent-ready.dev/auth (agent authentication guide), and the OpenAPI 3.1.0 at
+  openapi/agent-ready-dev-openapi.yml (Idempotency-Key header parameter and response headers on startScan,
+  cursor pagination on listScans, the Error envelope schema). Live corroboration: GET /api/v1/ask returned
+  x-ratelimit-limit: 30 / x-ratelimit-remaining: 29 on an unauthenticated request; GET /api returned 401 with
+  the RFC 9728 WWW-Authenticate challenge.
+description: >-
+  How the Agent Ready REST API behaves across every operation: Bearer API-key authentication with RFC 9728
+  discovery, an Idempotency-Key header on the one mutating Pro operation, cursor pagination on the list
+  endpoint, URL-path versioning with an RFC 8594/9745 Sunset+Deprecation policy, a {error:{code,message}}
+  envelope, X-RateLimit-* + Retry-After signalling, SSE streaming on the NLWeb /ask endpoint, and the x402/MPP
+  HTTP 402 payment lane.
+
+base_url: https://agent-ready.dev/api/v1
+api_style: REST over HTTPS, JSON requests and responses; JSON-RPC 2.0 on the MCP (/api/v1/mcp) and A2A (/api/v1/a2a) surfaces
+
+authentication:
+  scheme: 'HTTP Bearer (Authorization: Bearer ar_live_<prefix>_<secret>)'
+  key_types: [ar_live_ (Pro plan API key; the only credential type)]
+  public_operations: [askGet, askPost, scanMcp, x402ScanChallenge, x402Scan]
+  discovery: 'WWW-Authenticate: Bearer realm="agent-ready", resource_metadata="https://agent-ready.dev/.well-known/oauth-protected-resource" on every 401'
+  docs: https://agent-ready.dev/auth
+  detail: authentication/agent-ready-dev-authentication.yml
+
+idempotency:
+  supported: true
+  coverage: partial
+  scope: [startScan]
+  mechanism: Idempotency-Key request header (optional) on POST /api/v1/scans
+  applies_to: >-
+    The single mutating operation on the authenticated v1 surface. The other write-shaped operations —
+    scanMcp (POST /api/v1/scan/mcp, synchronous, public) and x402Scan (POST /api/x402/scan, paid) — declare no
+    Idempotency-Key parameter; the MCP tools are annotated idempotentHint true but expose no key.
+  key_format: 'Client-generated, 1-255 chars, [A-Za-z0-9_-]'
+  retention: Keys are retained for 24 hours (agents.json start_scan_flow description; OpenAPI 202 response headers).
+  conflict_behavior: >-
+    A retry with the same key replays the original 202 with Idempotency-Replayed: true. Reusing a key with a
+    different request body returns 422. A retry that arrives while the first request is still in flight
+    returns 409.
+  response_headers: [Idempotency-Key, Idempotency-Replayed]
+  docs: https://agent-ready.dev/.well-known/agents.json
+  spec: openapi/agent-ready-dev-openapi.yml#startScan
+
+reversibility:
+  status: none
+  write_surface:
+  - operation: startScan
+    effect: Creates a scan record owned by the API key, consumes one scan from the monthly quota, and crawls a third-party site.
+    reversal: null
+    window: null
+    note: No cancel, delete or void operation exists in the OpenAPI, the docs, the MCP tool list or the A2A skills.
+  - operation: x402Scan
+    effect: Settles a USDC payment on Base (eip155:8453) and runs a scan.
+    reversal: null
+    window: null
+    note: >-
+      No refund operation. The Terms of Service (§4) say a charge believed to be in error can be raised by email
+      within 14 days and refunds outside statutory rights are discretionary — a human process for subscriptions,
+      not an API reversal, and it does not name x402 payments.
+  - operation: scanMcp
+    effect: Runs a synchronous public grade of a remote MCP server; creates a shareable report.
+    reversal: null
+    window: null
+  read_only_note: >-
+    The API is analysis-only — every write produces an immutable report and no downstream state a reversal
+    could undo. The honest grade is still `none`: writes consume quota or money, and the provider publishes no
+    reversal path or window for either. Not `na`, because a write surface exists.
+  docs: https://agent-ready.dev/terms
+
+dry_run_mode:
+  supported: false
+  note: >-
+    No dry-run, validate-only or test-mode flag is documented. The keyless anonymous tier (POST /api/scan,
+    3 scans / 30 days per IP) is a real scan at reduced depth, not a rehearsal.
+
+pagination:
+  style: cursor
+  operations: [listScans]
+  request_params:
+    limit: integer (page size)
+    cursor: 'Opaque cursor — the ISO 8601 datetime returned as nextCursor by a previous response; returns scans strictly older than it.'
+  response_fields:
+    data: array of ScanSummary
+    nextCursor: cursor for the next (older) page; absent on the last page
+  docs: https://agent-ready.dev/docs/api/reference
+
+async_pattern:
+  style: 202 + poll
+  operation: startScan
+  detail: >-
+    POST /api/v1/scans returns 202 with a Location header (RFC 7231 §6.3.3) and the same URL as pollUrl in the
+    body; poll GET /api/v1/scans/{id} every 2-3 seconds until status is completed or failed. Polling is
+    rate-limited separately (120/min).
+
+streaming:
+  supported: true
+  operations: [askGet, askPost]
+  mechanism: 'Server-Sent Events when stream=true (GET query) or streaming: true (POST body); the public /api/scan also accepts "stream": true and emits status, site-checks, page-result, llmstxt-checks, score and complete events.'
+  docs: https://agent-ready.dev/docs/api
+
+field_expansion:
+  supported: false
+metadata:
+  supported: false
+request_tracing:
+  supported: false
+  note: No request-id header is documented or observed; responses carry Vercel's x-vercel-id edge header only.
+
+versioning:
+  scheme: uri-path
+  current: v1
+  policy: >-
+    Stable endpoints live under /api/v1; breaking changes ship behind a new prefix (/api/v2, …) and never on the
+    existing one. Scheduled removals set Sunset (RFC 8594) and Deprecation (RFC 9745) response headers with
+    the planned date, mark the operation deprecated: true in the spec, and are announced at least 90 days
+    before removal. No /api/v1 endpoint is currently deprecated.
+  docs: https://agent-ready.dev/docs/api#versioning-and-deprecation-policy
+  detail: lifecycle/agent-ready-dev-lifecycle.yml
+
+error_envelope:
+  media_type: application/json
+  shape: '{ "error": { "code": string, "message": string } }'
+  oauth_errors: 'On auth failures the body may instead carry the RFC 6749 §5.2 shape {"error":"invalid_token","error_description":"…"} (observed on GET /api: {"error":"unauthorized","error_description":…, "documentation", "openapi", "resource_metadata"}).'
+  rfc9457: false
+  detail: errors/agent-ready-dev-problem-types.yml
+
+rate_limiting:
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After]
+  status_on_exhaustion: 429
+  limits: '10 scan starts / minute and 200 / day per Pro key (sliding window); 120 polls / minute; ask observed at 30 / window unauthenticated'
+  retry_guidance: Honour Retry-After on 429; exponential backoff with full jitter (base ~250 ms, cap 30 s, ~5 attempts) on 5xx; never retry other 4xx.
+  detail: rate-limits/agent-ready-dev-rate-limits.yml
+
+payments:
+  supported: true
+  protocols: [x402 v2 (X-PAYMENT header), MPP (Authorization: Payment)]
+  challenge: HTTP 402 with PAYMENT-REQUIRED header + JSON body on GET/POST /api/x402/scan
+  prices: '$0.02 USDC (25 pages) or $0.25 USDC (250 pages), exact scheme on eip155:8453, asset 0x8335…2913 (USDC)'
+  discovery: [https://agent-ready.dev/.well-known/x402, https://agent-ready.dev/.well-known/mpp, https://agent-ready.dev/discovery/resources]
+
+content_negotiation:
+  markdown_mirrors: 'Every documentation page has a .md twin (e.g. /docs/api.md, /pricing.md, /auth.md) advertised via Link: rel="alternate" type="text/markdown"; every response carries Link: </llms.txt>; rel="describedby".'
+  content_signal: 'content-signal: search=yes, ai-input=yes, ai-train=yes response header, mirrored in robots.txt.'
+
+cross_links:
+  authentication: authentication/agent-ready-dev-authentication.yml
+  scopes: scopes/agent-ready-dev-scopes.yml
+  errors: errors/agent-ready-dev-problem-types.yml
+  lifecycle: lifecycle/agent-ready-dev-lifecycle.yml
+  rate_limits: rate-limits/agent-ready-dev-rate-limits.yml
+  plans: plans/agent-ready-dev-plans-pricing.yml

@@ -1,0 +1,72 @@
+generated: '2026-09-19'
+method: searched
+source: openapi/agent-ready-dev-openapi.yml
+docs: https://agent-ready.dev/auth
+additional_docs:
+- https://agent-ready.dev/docs/api#authentication
+- https://agent-ready.dev/.well-known/oauth-protected-resource
+- https://agent-ready.dev/.well-known/oauth-authorization-server
+summary:
+  types:
+  - http
+  http_schemes: [bearer]
+  api_key_in: [header]
+  oauth2_flows: []
+  credential_types: [ar_live_ Pro API key]
+  public_operations: [askGet, askPost, scanMcp, x402ScanChallenge, x402Scan]
+  discovery: RFC 9728 protected-resource metadata + RFC 8414 authorization-server metadata + WWW-Authenticate on 401
+  dynamic_client_registration: false
+  delegated_identity: false
+schemes:
+- name: ApiKey
+  type: http
+  scheme: bearer
+  bearerFormat: ar_live_<prefix>_<secret>
+  description: API key issued from /dashboard/api-keys. Pro subscription required.
+  sources:
+  - openapi/agent-ready-dev-openapi.yml
+  applies_to: [startScan, listScans, getScan]
+  header: 'Authorization: Bearer ar_live_<prefix>_<secret>'
+  key_format: >-
+    ar_live_<prefix>_<secret> — the prefix is non-secret and identifies the key in the dashboard; only the
+    SHA-256 hash of the secret is stored server-side, so a leaked key must be rotated, not recovered.
+  issuance: https://agent-ready.dev/dashboard/api-keys (human-mediated; shown once; Pro plan required)
+  rotation: Two keys can be active simultaneously for zero-downtime rotation; revoke from the dashboard, instant and irreversible.
+  shared_surfaces: The same key authenticates REST (/api/v1/scans), the hosted MCP endpoint (/api/v1/mcp) and the A2A endpoint (/api/v1/a2a), and they share one rate-limit budget.
+  ci_convention: GitHub Actions secret AGENT_READY_API_KEY; CLI/SDK env var AGENT_READY_API_KEY.
+agent_auth:
+  model: machine-to-machine Bearer key (client-credentials-shaped, but issued out of band from a dashboard rather than at a token endpoint)
+  protected_resource_metadata:
+    url: https://agent-ready.dev/.well-known/oauth-protected-resource
+    file: well-known/agent-ready-dev-oauth-protected-resource.json
+    resource: https://agent-ready.dev/api/v1/mcp
+    authorization_servers: [https://agent-ready.dev]
+    scopes_supported: [scan:read, scan:write, ask:read, mcp]
+  authorization_server_metadata:
+    url: https://agent-ready.dev/.well-known/oauth-authorization-server
+    file: well-known/agent-ready-dev-oauth-authorization-server.json
+    issuer: https://agent-ready.dev
+    grant_types_supported: [urn:ietf:params:oauth:grant-type:api-key]
+    registration_endpoint: https://agent-ready.dev/dashboard/api-keys (human dashboard — not RFC 7591)
+    agent_auth_block: 'register_uri, identity_types_supported [anonymous, identity_assertion], skill https://agent-ready.dev/auth.md'
+  www_authenticate: 'Bearer realm="agent-ready", error="invalid_token", resource_metadata="https://agent-ready.dev/.well-known/oauth-protected-resource"'
+  observed: 'GET https://agent-ready.dev/api -> 401 with the WWW-Authenticate challenge above (2026-09-19).'
+  not_supported:
+  - OAuth 2.1 authorization-code flow
+  - RFC 7591 dynamic client registration
+  - RFC 7521 identity_assertion / id-jag token exchange
+  - RFC 7009 revocation endpoint (dashboard revocation only)
+  - OpenID Connect discovery
+  bot_identity:
+    web_bot_auth: true
+    directory: https://agent-ready.dev/.well-known/http-message-signatures-directory
+    note: The provider publishes its own RFC 9421 Ed25519 key directory for the agent-ready-scanner bot; it identifies the bot, the Bearer key authorises the call.
+alternatives_without_a_key:
+  anonymous_free_tier: POST https://agent-ready.dev/api/scan — 3 scans / 30 days per IP at 25-page depth; also what the stdio MCP package and CLI use keyless.
+  mcp_apps_endpoint: https://agent-ready.dev/api/apps/mcp — tools/call with no credential; rate-limited per opaque ChatGPT user id.
+  x402_mpp: 'Pay per scan with an X-PAYMENT header or MPP Authorization: Payment on /api/x402/scan — $0.02 / $0.25 USDC on Base, no account.'
+  public_endpoints: [GET/POST /api/v1/ask, POST /api/v1/scan/mcp]
+errors:
+  401: {code: invalid_token, meaning: Missing, malformed, expired or revoked Bearer token}
+  403: {code: insufficient_scope, meaning: Token valid but the plan tier lacks access (e.g. Free-tier key calling /api/v1/scans); OpenAPI Error example code subscription_required}
+  429: {meaning: 'Over 10/min or 200/day; Retry-After present'}

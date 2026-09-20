@@ -1,0 +1,116 @@
+generated: '2026-09-19'
+method: searched
+source: >-
+  Request/response examples published by the provider: inline `example` values in openapi/agent-ready-dev-openapi.yml
+  (StartScanRequest.url, Error.error.code, CheckResult.checkId / name), the curl examples on
+  https://agent-ready.dev/docs/api and https://agent-ready.dev/quickstart, the public scan example in
+  https://agent-ready.dev/AGENTS.md, and the live responses this pipeline observed on 2026-09-19. Nothing here
+  was invented; where a value is illustrative in the provider's docs it is marked so.
+api: openapi/agent-ready-dev-openapi.yml
+examples:
+- operationId: startScan
+  title: Start a scan (Pro key) and receive a poll URL
+  source: https://agent-ready.dev/docs/api#quickstart
+  request:
+    method: POST
+    url: https://agent-ready.dev/api/v1/scans
+    headers: {Authorization: 'Bearer $AGENT_READY_API_KEY', Content-Type: application/json, Idempotency-Key: '<client-generated 1-255 chars, optional>'}
+    body: {url: https://example.com}
+  response:
+    status: 202
+    headers: {Location: /api/v1/scans/V1StGXR8_Z}
+    body: {id: V1StGXR8_Z, pollUrl: /api/v1/scans/V1StGXR8_Z, status: queued}
+  note: The scan id V1StGXR8_Z is the docs' illustrative sample.
+- operationId: getScan
+  title: Poll a scan until completed
+  source: https://agent-ready.dev/docs/api#quickstart
+  request:
+    method: GET
+    url: https://agent-ready.dev/api/v1/scans/V1StGXR8_Z
+    headers: {Authorization: 'Bearer $AGENT_READY_API_KEY'}
+  response:
+    status: 200
+    body_shape: 'Scan — id, rootUrl, status (completed), vercelScore, vercelRating, llmstxtScore, accessibilityScore, percentile, corpusTotal, siteChecks[], llmstxtChecks[], pageResults[], protocolResults[], shareToken'
+    check_result_example: {checkId: S1, name: llms.txt exists, status: pass, message: '…', howToFix: null}
+  note: checkId S1 / name "llms.txt exists" are the spec's own example values on CheckResult.
+- operationId: listScans
+  title: List recent scans with a cursor
+  source: https://github.com/mlava/agent-ready-cli (README, `agent-ready list --cursor`)
+  request:
+    method: GET
+    url: 'https://agent-ready.dev/api/v1/scans?limit=5&cursor=2026-05-30T00:00:00.000Z'
+    headers: {Authorization: 'Bearer $AGENT_READY_API_KEY'}
+  response:
+    status: 200
+    body_shape: '{ data: [ScanSummary…], nextCursor: "<ISO 8601 datetime>" }'
+- operationId: askGet
+  title: Public NLWeb question (observed live)
+  source: observed 2026-09-19
+  request:
+    method: GET
+    url: 'https://agent-ready.dev/api/v1/ask?query=what+is+check+S1'
+  response:
+    status: 200
+    headers: {content-type: application/json, x-ratelimit-limit: '30', x-ratelimit-remaining: '29', link: '</llms.txt>; rel="describedby"'}
+    body_shape: 'AskResponse — results[] with flat fields plus a nested Schema.org schema_object, meta'
+- operationId: askPost
+  title: Public NLWeb question, JSON body
+  source: https://agent-ready.dev/docs/api#ask-nlweb
+  request:
+    method: POST
+    url: https://agent-ready.dev/api/v1/ask
+    headers: {Content-Type: application/json}
+    body: {query: 'how is the score calculated?'}
+  response: {status: 200, body_shape: AskResponse}
+- operationId: scanMcp
+  title: Grade a live remote MCP server (public)
+  source: https://agent-ready.dev/docs/api#scan-an-mcp-server
+  request:
+    method: POST
+    url: https://agent-ready.dev/api/v1/scan/mcp
+    headers: {Content-Type: application/json}
+    body: {endpoint: https://mcp.example.com/mcp}
+  response:
+    status: 201
+    body: {scan: {mcpScore: 92, mcpRating: excellent}, shareUrl: /mcp-server-scanner/…}
+  note: The 92 / excellent values are the docs' illustrative sample.
+- operationId: x402ScanChallenge
+  title: x402 payment challenge (observed live)
+  source: observed 2026-09-19
+  request: {method: GET, url: https://agent-ready.dev/api/x402/scan}
+  response:
+    status: 402
+    headers: {PAYMENT-REQUIRED: '<base64url JSON>'}
+    decoded_payment_required:
+      x402Version: 2
+      resource: {url: https://agent-ready.dev/api/x402/scan, mimeType: application/json, serviceName: Agent Ready}
+      accepts:
+      - {scheme: exact, network: 'eip155:8453', asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', amount: '20000', payTo: '0x5c08951b999cc133eE4161a3a2B299160f66C42E', maxTimeoutSeconds: 300}
+      - {scheme: exact, network: 'eip155:8453', asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', amount: '250000', payTo: '0x5c08951b999cc133eE4161a3a2B299160f66C42E', maxTimeoutSeconds: 300}
+- operationId: x402Scan
+  title: Paid scan with an X-PAYMENT header
+  source: https://agent-ready.dev/docs/api#pay-per-scan-with-x402-no-auth
+  request:
+    method: POST
+    url: https://agent-ready.dev/api/x402/scan
+    headers: {Content-Type: application/json, X-PAYMENT: '<base64 signed EIP-3009 USDC authorization>'}
+    body: {url: https://example.com}
+  response: {status: 201, headers: {X-PAYMENT-RESPONSE: '<settlement>'}, body_shape: PaidScanResponse}
+  note: Not exercised by this pipeline (it would settle a real payment).
+error_examples:
+- status: 401
+  source: observed 2026-09-19 on GET https://agent-ready.dev/api
+  headers: {WWW-Authenticate: 'Bearer realm="agent-ready", resource_metadata="https://agent-ready.dev/.well-known/oauth-protected-resource"'}
+  body: {error: unauthorized, error_description: "Agent Ready's API requires a Bearer token. Discover auth requirements at https://agent-ready.dev/.well-known/oauth-protected-resource or follow the walkthrough at https://agent-ready.dev/auth.", documentation: https://agent-ready.dev/auth, openapi: https://agent-ready.dev/api/v1/openapi.json, resource_metadata: https://agent-ready.dev/.well-known/oauth-protected-resource}
+- status: 403
+  source: openapi Error schema example
+  body: {error: {code: subscription_required, message: '…'}}
+- status: 401
+  source: https://agent-ready.dev/auth#errors
+  headers: {WWW-Authenticate: 'Bearer realm="agent-ready", error="invalid_token", error_description="Missing or invalid Bearer token", resource_metadata="https://agent-ready.dev/.well-known/oauth-protected-resource"'}
+  body: {error: invalid_token, error_description: Missing or invalid Bearer token}
+public_unversioned_example:
+- title: Anonymous free scan (outside the OpenAPI)
+  source: https://agent-ready.dev/AGENTS.md
+  request: {method: POST, url: https://agent-ready.dev/api/scan, headers: {Content-Type: application/json}, body: {url: https://example.com}}
+  response: {status: 201, body_shape: '{ scan: {…}, shareUrl: "/scan/<token>" }'}

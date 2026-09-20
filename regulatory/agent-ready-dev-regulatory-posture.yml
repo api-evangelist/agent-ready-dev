@@ -1,0 +1,78 @@
+generated: '2026-09-19'
+method: searched
+probe: true
+source: https://agent-ready.dev/privacy
+probed:
+- {url: https://agent-ready.dev/privacy, status: 200}
+- {url: https://agent-ready.dev/terms, status: 200}
+- {url: https://agent-ready.dev/about, status: 200}
+- {url: https://agent-ready.dev/accessibility, status: 404}
+- {url: https://agent-ready.dev/legal/subprocessors, status: 404}
+- {url: https://agent-ready.dev/legal/dpa, status: 404}
+- {url: https://agent-ready.dev/trust, status: 404}
+- {url: https://agent-ready.dev/security, status: 404}
+- {url: https://agent-ready.dev/.well-known/security.txt, status: 404}
+signals:
+  data_subject_request:
+    url: https://agent-ready.dev/privacy
+    section: '6. Your rights'
+    channel: privacy@agent-ready.dev
+    self_service: https://agent-ready.dev/dashboard/privacy (signed-in JSON export; account deletion via Clerk triggers an automatic purge)
+    stated_sla: 'We aim to respond within 30 days.'
+    rights_named: [access, correction, erasure, portability (JSON export), objection, complaint to the UK ICO or local EEA regulator]
+    evidence:
+    - source: https://agent-ready.dev/privacy
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "To exercise any of these rights, email privacy@agent-ready.dev. We aim to respond within 30 days." …
+        "Signed-in users can download a JSON copy of their data at any time from the Privacy & your data page
+        (https://agent-ready.dev/dashboard/privacy)".
+  subprocessors:
+    url: https://agent-ready.dev/privacy
+    section: '4. Who we share it with (sub-processors)'
+    count: 7
+    named: [Clerk, Stripe, Neon, Upstash, Resend, Vercel, Sentry]
+    transfer_safeguards: UK International Data Transfer Agreement, EU Standard Contractual Clauses, or equivalent
+    dated: false
+    evidence:
+    - source: https://agent-ready.dev/privacy
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "We rely on the following third parties to run the service: Clerk — authentication … Stripe — payments
+        … Neon — our PostgreSQL database host … Upstash — our Redis cache … Resend — transactional email …
+        Vercel — hosting and edge network. Sentry — error reporting."
+    note: >-
+      A named, purpose-annotated sub-processor list inside the privacy policy (last updated 2026-06-01), not a
+      standalone dated table at /legal/subprocessors (404). Recorded because the substance — every processor
+      named with its role and the transfer mechanism — is present.
+  ai_transparency:
+    url: https://agent-ready.dev/privacy
+    section: '9. ChatGPT app'
+    scope: narrow
+    evidence:
+    - source: https://agent-ready.dev/privacy
+      http_status: 200
+      fetched: '2026-09-19'
+      quote: >-
+        "We publish an official Agent Ready app for ChatGPT, built with the OpenAI Apps SDK on the Model Context
+        Protocol … the platform passes us an opaque per-user identifier (openai/subject) … used solely as a
+        rate-limiting key".
+    note: >-
+      Discloses what the AI-platform surface sends and how it is used. It is a data-handling disclosure for one
+      AI surface, not an Article 50-style statement that users are interacting with an AI or that content is
+      AI-generated (the scanner's checks are deterministic per /methodology), so the pointer is NOT emitted —
+      the substance a regime would ask for is not what this section carries.
+absent:
+  sbom: 'No SBOM published (never derived — search only).'
+  support_lifetime: 'No support period stated beyond the 90-day deprecation notice in lifecycle/.'
+  accessibility_conformance: '/accessibility 404; the provider self-scans WCAG 2.2 (accessibilityScore 100 in /.well-known/agent-readiness-status.json) but publishes no VPAT or conformance report.'
+  training_data_summary: none
+  global_privacy_control: 'No GPC statement in the privacy policy (it says no tracking cookies or pixels are used, which is not a GPC commitment).'
+  data_residency: none (hosting on Vercel; database at Neon; regions not stated)
+  incident_notification: 'No breach-notification SLA; privacy §11 says material changes are emailed to account holders.'
+  age_assurance: none
+  notice_and_action: none (abuse@agent-ready.dev is a misuse/security contact, not a content-reporting process)
+  transparency_report: none
+  exit_assistance: 'Data export exists (JSON download) and is recorded under data_subject_request; no cloud-switching / exit assistance commitment.'

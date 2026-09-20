@@ -1,0 +1,85 @@
+generated: '2026-09-19'
+method: searched
+source: https://agent-ready.dev/pricing
+checked: '2026-09-19'
+summary: >-
+  Agent Ready publishes two self-serve subscription plans with prices — Free ($0/month) and Pro ($19/month,
+  USD, billed via Stripe, cancel anytime) — plus a third, agent-only pay-per-scan path over x402 or MPP
+  ($0.02 USDC per 25-page scan, $0.25 USDC per 250-page scan, settled on Base mainnet, no account). There is
+  no team, enterprise or custom tier and no time-limited trial ("the Free tier is the trial"); complimentary
+  Pro is offered to open-source, non-profit and academic projects on request. API keys, the hosted MCP
+  endpoint and the GitHub Action are Pro features; the CLI and stdio MCP server run keyless on the anonymous
+  quota.
+plan_count: 3
+prices_published: true
+currency: USD
+billing_period: monthly
+public_signup_pricing: true
+plans:
+- name: Free
+  price: 0
+  currency: USD
+  billing_period: month
+  cta: Scan (no sign-up required)
+  included_quota:
+    pages_per_scan: 25
+    scans_signed_in: 10 per 30 days
+    scans_anonymous: 3 per IP per 30 days
+  limits:
+    scan_history: none
+    monitoring: manual scans only
+    rest_api: none (REST v1 Bearer keys are Pro)
+    mcp: keyless via the stdio agent-ready-mcp package on the anonymous per-IP quota; hosted /api/v1/mcp is Pro
+    cli: keyless `npx agent-ready-scanner scan <url>` on the anonymous quota
+    github_action: not available
+    shareable_urls: true
+    svg_badge: true
+    support: community
+  overage: null
+- name: Pro
+  price: 19
+  currency: USD
+  billing_period: month
+  cta: Upgrade (Stripe)
+  included_quota:
+    pages_per_scan: 250
+    scans_per_month: 50
+    api_requests: 10 per minute, 200 per day (sliding window)
+  limits:
+    scan_history: 90 days
+    monitoring: weekly automated re-scans with email alerts on a 5+ point score regression
+    rest_api: REST API v1 (Bearer key from /dashboard/api-keys)
+    mcp: POST /api/v1/mcp with the same Bearer key (shares the rate-limit counter)
+    cli: agent-ready-scanner with the Pro key
+    github_action: 'uses: mlava/agent-ready-action@v1'
+    shareable_urls: true
+    svg_badge: true
+    support: email (support@agent-ready.dev)
+  overage: null
+  cancellation: Cancel anytime from the Stripe billing portal; features continue to the end of the billing period; no pro-rated refund.
+- name: Pay-per-scan (x402 / MPP)
+  price: 0.02-0.25
+  currency: USDC
+  billing_period: per scan
+  audience: autonomous agents with a wallet; not a human payment option
+  cta: 'POST /api/x402/scan with X-PAYMENT (x402) or Authorization: Payment (MPP)'
+  included_quota:
+    standard_scan: $0.02 USDC for up to 25 pages
+    deep_scan: $0.25 USDC for up to 250 pages
+  limits:
+    scan_history: none
+    monitoring: none
+    api_keys: none
+    shareable_urls: true
+    svg_badge: true
+    settlement: Base mainnet (eip155:8453) via the Coinbase CDP facilitator, which pays gas
+    account_required: false
+  discovery: [https://agent-ready.dev/.well-known/x402, https://agent-ready.dev/.well-known/mpp, https://agent-ready.dev/discovery/resources]
+  overage: null
+free_trial: none — the Free tier is the trial
+enterprise_tier: none ("no separate team, enterprise, or custom tier"; higher limits or seat-based billing by email)
+discounts: complimentary Pro upgrade for open-source maintainers, registered non-profits and academic researchers on request
+refunds: 'Terms §4: charges believed to be in error can be raised by email within 14 days; otherwise discretionary; UK/EEA statutory rights preserved'
+related:
+  rate_limits: rate-limits/agent-ready-dev-rate-limits.yml
+  conventions: conventions/agent-ready-dev-conventions.yml

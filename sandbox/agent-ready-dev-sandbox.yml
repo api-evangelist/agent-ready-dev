@@ -1,0 +1,63 @@
+generated: '2026-09-19'
+method: searched
+source: https://agent-ready.dev/pricing + https://agent-ready.dev/docs/api + https://agent-ready.dev/docs/api/reference
+summary: >-
+  Agent Ready publishes NO separate sandbox environment, NO test-mode key prefix and NO magic test values — the
+  only key type is ar_live_ and it hits production. What it publishes instead is a set of genuinely free,
+  keyless try-before-you-buy surfaces on the production host, which the pricing page positions explicitly as
+  the trial ("The Free tier is the trial"): an anonymous POST /api/scan quota, a public NLWeb /ask, a public
+  MCP-server grader, a no-auth MCP Apps endpoint, a set of free browser validators, and an interactive OpenAPI
+  console. Recorded as the developer's test path, with the absence of test credentials stated plainly.
+test_vs_live:
+  separation: none
+  key_prefixes: {live: ar_live_, test: null}
+  note: 'Keys are live-only; there is no ar_test_ prefix and no mode switch. A "test" call is a real scan at reduced depth against real quota.'
+try_it_surfaces:
+- name: Anonymous free scan
+  url: https://agent-ready.dev/api/scan
+  method: POST
+  auth: none
+  quota: '3 scans per IP per 30 days, 25-page depth, synchronous (201 with the finished result; "stream": true for SSE progress)'
+  source: https://agent-ready.dev/AGENTS.md
+- name: Keyless CLI / stdio MCP
+  install: npx agent-ready-scanner scan https://example.com   |   npx -y agent-ready-mcp@latest
+  auth: none (rides the anonymous per-IP quota above)
+  source: https://agent-ready.dev/docs/api#cli
+- name: Public NLWeb ask
+  url: https://agent-ready.dev/api/v1/ask?query=how+is+the+score+calculated
+  auth: none
+  observed: 200 on 2026-09-19 with x-ratelimit-limit 30
+- name: Public MCP server grader
+  url: https://agent-ready.dev/api/v1/scan/mcp
+  method: POST
+  auth: none
+  body: '{"endpoint":"https://mcp.example.com/mcp"}'
+- name: No-auth MCP Apps endpoint
+  url: https://agent-ready.dev/api/apps/mcp
+  auth: none
+  note: tools/call for scan_site and get_scan works without a credential (renders the ui:// score card).
+- name: Interactive API reference (console)
+  url: https://agent-ready.dev/docs/api/reference
+  note: OpenAPI 3.1 console that generates client code in 20+ languages; Pro key needed to execute authenticated calls.
+- name: Free browser validators
+  urls:
+  - https://agent-ready.dev/llms-txt-checker
+  - https://agent-ready.dev/agents-md-validator
+  - https://agent-ready.dev/mcp-card-validator
+  - https://agent-ready.dev/mcp-server-scanner
+  - https://agent-ready.dev/agent-card-validator
+  - https://agent-ready.dev/agents-json-validator
+  - https://agent-ready.dev/agent-permissions-validator
+  - https://agent-ready.dev/ucp-validator
+  - https://agent-ready.dev/acp-validator
+  - https://agent-ready.dev/x402-checker
+  - https://agent-ready.dev/structured-data-validator
+  auth: none
+test_values: []
+test_clocks: false
+fixtures: false
+example_ids_in_docs:
+  scan_id: V1StGXR8_Z
+  note: Appears in the docs' curl examples as a sample scan id; it is illustrative, not a guaranteed fixture.
+x402_testnet: false
+x402_note: The x402 lane is mainnet only (eip155:8453, real USDC); no testnet challenge is published.

@@ -1,0 +1,59 @@
+generated: '2026-09-19'
+method: derived
+source: >-
+  Derived from openapi/agent-ready-dev-openapi.yml (OpenAPI 3.1.0, 19 components.schemas): schema $ref links
+  (Scan -> CheckResult / PageResult, ScanListResponse -> ScanSummary, McpScanResponse -> McpScan, AskResponse ->
+  AskResult / AskMeta / AskAnswer / AskFailure, AskResult -> SchemaObject) and the id fields the operations
+  address (Scan.id / shareToken as the path parameter of getScan and the share token in /scan/{id}). Enriched
+  with the check-family vocabulary from https://agent-ready.dev/AGENTS.md and the scan-agent-readiness SKILL.md.
+docs: https://agent-ready.dev/docs/api/reference
+notation: >-
+  Scans are addressed by an opaque string id (e.g. V1StGXR8_Z in the docs), which is also the shareToken used
+  in the public /scan/<id> report URL. There is no URN grammar and no cross-entity id prefix. Relationships use
+  has_one / has_many / belongs_to with the containing field in `via`.
+entities:
+- {name: Scan, schema: Scan, id_field: id, domain: scanning, description: 'A completed or running site scan: rootUrl, status (running|completed|failed), createdAt/completedAt, pagesDiscovered/pagesScanned, vercelScore + vercelRating, llmstxtScore, accessibilityScore, percentile + corpusTotal, siteChecks[], llmstxtChecks[], pageResults[], protocolResults[], shareToken.'}
+- {name: ScanSummary, schema: ScanSummary, id_field: id, domain: scanning, description: 'The list projection of a Scan: id, shareToken, domain, rootUrl, the four scores, percentile, corpusTotal, pagesScanned, createdAt.'}
+- {name: CheckResult, schema: CheckResult, id_field: checkId, domain: checks, description: 'One check outcome: checkId (S1-S15 site, P1-P25 page, L1-L10 llms.txt, C1-C22 protocol, A1-A23 accessibility), name, status (pass|fail|warn|error), message, howToFix (nullable), details.'}
+- {name: PageResult, schema: PageResult, domain: checks, description: Per-page result carrying the P-series checks for one crawled URL.}
+- {name: StartScanRequest, schema: StartScanRequest, domain: scanning, description: 'Body of startScan: url (uri, <=2000 chars, required), pageLimit (1-2000).'}
+- {name: StartScanResponse, schema: StartScanResponse, domain: scanning, description: '202 body: id, status, pollUrl.'}
+- {name: ScanListResponse, schema: ScanListResponse, domain: scanning, description: 'Cursor page: data[] of ScanSummary + nextCursor.'}
+- {name: PaidScanResponse, schema: PaidScanResponse, domain: payments, description: '201 body of x402Scan: the scan plus the shareable URL, after settlement.'}
+- {name: McpScan, schema: McpScan, id_field: id, domain: mcp-grading, description: 'A graded remote MCP server: endpoint, host, status, mcpScore + mcpRating, serverName/serverVersion, toolCount/resourceCount/promptCount, checks[], shareToken.'}
+- {name: McpScanRequest, schema: McpScanRequest, domain: mcp-grading, description: 'Body of scanMcp: endpoint (remote http(s) MCP URL).'}
+- {name: McpScanResponse, schema: McpScanResponse, domain: mcp-grading, description: 'scan (McpScan) + shareUrl.'}
+- {name: AskRequest, schema: AskRequest, domain: nlweb, description: 'NLWeb query: query, mode, itemType, streaming.'}
+- {name: AskResponse, schema: AskResponse, domain: nlweb, description: 'NLWeb envelope: results[] of AskResult, meta (AskMeta), optional answer (AskAnswer) or failure (AskFailure).'}
+- {name: AskResult, schema: AskResult, domain: nlweb, description: 'One result with flat fields plus a nested Schema.org schema_object (SchemaObject).'}
+- {name: SchemaObject, schema: SchemaObject, domain: nlweb, description: Schema.org-typed JSON-LD object attached to a result.}
+- {name: AskMeta, schema: AskMeta, domain: nlweb}
+- {name: AskAnswer, schema: AskAnswer, domain: nlweb, description: Extractive summary returned when mode is summarize.}
+- {name: AskFailure, schema: AskFailure, domain: nlweb, description: NLWeb failure envelope (404 No results).}
+- {name: Error, schema: Error, domain: errors, description: '{error: {code, message}} — see errors/agent-ready-dev-problem-types.yml.'}
+relationships:
+- {from: Scan, to: CheckResult, type: has_many, via: siteChecks}
+- {from: Scan, to: CheckResult, type: has_many, via: llmstxtChecks}
+- {from: Scan, to: CheckResult, type: has_many, via: protocolResults}
+- {from: Scan, to: PageResult, type: has_many, via: pageResults}
+- {from: PageResult, to: CheckResult, type: has_many, via: checks}
+- {from: ScanListResponse, to: ScanSummary, type: has_many, via: data}
+- {from: ScanSummary, to: Scan, type: belongs_to, via: id, note: The list row and the full scan share the id; getScan resolves one to the other.}
+- {from: StartScanResponse, to: Scan, type: has_one, via: id, note: 'pollUrl is /api/v1/scans/{id}.'}
+- {from: PaidScanResponse, to: Scan, type: has_one, via: scan}
+- {from: McpScanResponse, to: McpScan, type: has_one, via: scan}
+- {from: McpScan, to: CheckResult, type: has_many, via: checks}
+- {from: AskResponse, to: AskResult, type: has_many, via: results}
+- {from: AskResponse, to: AskMeta, type: has_one, via: meta}
+- {from: AskResponse, to: AskAnswer, type: has_one, via: answer}
+- {from: AskResponse, to: AskFailure, type: has_one, via: failure}
+- {from: AskResult, to: SchemaObject, type: has_one, via: schema_object}
+- {from: Scan, to: APIKey, type: belongs_to, via: ownership, note: 'Scans are owned by the API key''s user (getScan returns only scans owned by the authenticated key; anonymous scans are linked to a share token only — privacy policy §2). APIKey is not a schema in the spec.'}
+check_families:
+  S: {range: S1-S15, name: Site-wide, source: Vercel Agent Readability Spec}
+  P: {range: P1-P25, name: Per-page, source: Vercel Agent Readability Spec}
+  L: {range: L1-L10, name: llms.txt, source: llmstxt.org}
+  C: {range: C1-C22, name: Agent protocols, source: 'MCP, A2A, agents.json, agent-permissions, UCP, x402, MPP, AP2, ACP, NLWeb, api-catalog, Web Bot Auth, Agent Skills Discovery, content parity'}
+  A: {range: A1-A23, name: Accessibility, source: WCAG 2.2 + layout stability (separate accessibilityScore)}
+score_bands:
+  vercelRating: {excellent: '>= 90', good: '>= 70', fair: '>= 50', needs_improvement: '< 50'}

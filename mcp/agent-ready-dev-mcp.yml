@@ -1,0 +1,186 @@
+generated: '2026-09-19'
+method: probed
+status: published
+source: https://agent-ready.dev/.well-known/mcp.json
+docs: https://agent-ready.dev/mcp
+summary: >-
+  Agent Ready operates TWO hosted Streamable HTTP MCP endpoints on its apex host plus a stdio package on npm.
+  (1) https://agent-ready.dev/api/v1/mcp — the "agent-ready" server (protocol version 2025-06-18, serverInfo
+  agent-ready 1.0.0): initialize, tools/list, resources/list, resources/read and prompts are public so a
+  client can introspect without a credential; tools/call for scan_site and get_scan requires a Bearer
+  ar_live_ Pro API key, and the endpoint advertises RFC 9728 protected-resource metadata at
+  /.well-known/oauth-protected-resource. (2) https://agent-ready.dev/api/apps/mcp — the "agent-ready-apps"
+  MCP Apps server (OpenAI Apps SDK / MCP-UI): no auth at all, same three tools bound to a ui://widget/
+  agent-ready-score.html HTML resource, the surface behind the Agent Ready app in the ChatGPT directory; it is
+  also served on the dedicated mcp.agent-ready.dev host with its own SEP-1649/SEP-2127 server card. (3) npm
+  agent-ready-mcp — a stdio wrapper over the REST API (npx -y agent-ready-mcp@latest) that runs keyless on the
+  anonymous free tier. Anonymous tools/list succeeded on both HTTP endpoints, so the tool set is observed,
+  not inferred; the names, descriptions and outputSchema are Agent Ready-specific (vercelScore, llmstxtScore,
+  checkGroups) and match no shared platform fingerprint — this is a provider-built server. The provider's
+  /.well-known/mcp.json server card (schema 2025-10-17 server.schema.json) lists both hosted servers.
+deployment:
+  mode: both
+  endpoint: https://agent-ready.dev/api/v1/mcp
+  install: npx -y agent-ready-mcp@latest
+  package: https://www.npmjs.com/package/agent-ready-mcp
+  auth: api-key
+  verified: probed
+  note: >-
+    The remote endpoint is a hosted HTTPS URL an MCP client POSTs to directly (GET answers 405, per Streamable
+    HTTP). auth is api-key in the invocation sense: discovery (initialize/tools/list/resources/prompts) is
+    anonymous, tools/call for scan_site and get_scan needs Authorization: Bearer ar_live_… (Pro plan), and the
+    ask tool is public. The provider publishes RFC 8414 + RFC 9728 metadata for the resource, but its
+    authorization server declares grant_types_supported
+    [urn:ietf:params:oauth:grant-type:api-key] with token_endpoint_auth_methods_supported [none] and
+    response_types_supported [none] — human-mediated key issuance at /dashboard/api-keys, no OAuth
+    authorization-code flow and no RFC 7591 dynamic client registration (the docs at /auth say so explicitly).
+    A second no-auth endpoint, /api/apps/mcp, needs no credential at all for tools/call. The stdio package is
+    the same scanner over REST and works keyless on the anonymous per-IP quota.
+servers:
+- id: agent-ready
+  name: agent-ready
+  endpoint: https://agent-ready.dev/api/v1/mcp
+  transport: streamable-http
+  http_methods: [POST]
+  auth: bearer (ar_live_ Pro API key) for tools/call on scan_site and get_scan; discovery and ask are public
+  status: live
+  listings:
+  - Smithery (agent-ready/agent-ready-mcp)
+  - Official MCP registry (io.github.mlava/agent-ready-mcp)
+  - mcp.so, Glama, mcpservers.org
+  probe:
+    fetched: '2026-09-19'
+    initialize:
+      http_status: 200
+      protocol_version: '2025-06-18'
+      server_info: {name: agent-ready, version: 1.0.0, title: Agent Ready, websiteUrl: https://agent-ready.dev}
+      capabilities: {resources: {listChanged: true}, tools: {listChanged: true}, prompts: {listChanged: true}}
+    tools_list:
+      http_status: 200
+      content_type: application/json
+      tool_count: 3
+      file: mcp/agent-ready-dev-mcp-tools.json
+      note: Every tool carries inputSchema, outputSchema, annotations (readOnlyHint true, destructiveHint false, idempotentHint true, openWorldHint true) and _meta.ui.resourceUri.
+    resources_list:
+      http_status: 200
+      resources: [ui://widget/agent-ready-score.html, agent-ready://methodology, agent-ready://checks, agent-ready://llms.txt, agent-ready://specs]
+    get_request: {http_status: 405, note: 'Streamable HTTP, POST only (Allow: POST); the /mcp HTML page is the human install guide'}
+    unauthenticated_api_get:
+      url: https://agent-ready.dev/api
+      http_status: 401
+      www_authenticate: 'Bearer realm="agent-ready", resource_metadata="https://agent-ready.dev/.well-known/oauth-protected-resource"'
+  authorship: provider
+  oauth_metadata:
+    protected_resource: well-known/agent-ready-dev-oauth-protected-resource.json
+    authorization_server: well-known/agent-ready-dev-oauth-authorization-server.json
+    resource: https://agent-ready.dev/api/v1/mcp
+    scopes_supported: [scan:read, scan:write, ask:read, mcp]
+    grant_types_supported: [urn:ietf:params:oauth:grant-type:api-key]
+    dynamic_client_registration: false
+  tools:
+  - name: scan_site
+    title: Scan a site for AI agent readability
+    read_only: true
+    idempotent: true
+    auth: bearer
+    input_schema:
+      url: 'string, format uri, maxLength 2000 (required)'
+      pageLimit: 'integer 1-2000 (optional; defaults to the tier''s per-scan page limit)'
+    output_schema: 'object: id, status (running|completed|failed), shareUrl, rootUrl, vercelScore, vercelRating, llmstxtScore, accessibilityScore, protocolResults[], accessibilityChecks[], …'
+    description: >-
+      Runs the agent-ready.dev scanner against a URL and returns structured results: Vercel score, llmstxt.org
+      score, and per-check findings with remediation hints. Scans may take up to ~60s; for larger scans the
+      tool returns a scan id and asks you to poll with get_scan.
+  - name: get_scan
+    title: Get a previous scan by id
+    read_only: true
+    idempotent: true
+    auth: bearer
+    input_schema:
+      id: 'string 1-100 chars (required) — the scan id returned by scan_site, also the share token in a /scan/<id> URL'
+    description: Fetches a previously started scan by its id — use this to check on a scan that was still running.
+  - name: ask
+    title: Ask Agent Ready in natural language
+    read_only: true
+    idempotent: true
+    auth: public
+    input_schema:
+      q: 'string 1-2000 chars (required)'
+      itemType: 'string enum restricting results to a content type (methodology, checks, specs, …) (optional)'
+      mode: 'string; ''summarize'' adds an extractive summary (optional)'
+    description: >-
+      Natural-language search (NLWeb /ask) over Agent Ready's own content — scoring methodology, the check
+      registry, the specs it validates, and the content library. Returns Schema.org-typed result objects.
+  prompts:
+  - {name: scan, description: Fresh scan + high-level summary (per https://agent-ready.dev/mcp).}
+  - {name: interpret_scan, description: Plain-English explanation of a scan's findings.}
+  - {name: remediation_plan, description: 'Prioritised fix-it doc (optional focus: seo or agents).'}
+  resources:
+  - {uri: 'ui://widget/agent-ready-score.html', mime: 'text/html;profile=mcp-app', description: Interactive score-card widget (MCP Apps).}
+  - {uri: 'agent-ready://methodology', mime: text/markdown, description: Scoring methodology.}
+  - {uri: 'agent-ready://checks', mime: text/markdown, description: Check registry (all 72 check IDs).}
+  - {uri: 'agent-ready://llms.txt', mime: text/markdown, description: Agent Ready's own llms.txt.}
+  - {uri: 'agent-ready://specs', mime: text/markdown, description: Canonical URLs for the validated specs.}
+- id: agent-ready-apps
+  name: agent-ready-apps
+  endpoint: https://agent-ready.dev/api/apps/mcp
+  alternate_endpoint: https://mcp.agent-ready.dev/api/apps/mcp
+  server_card: https://mcp.agent-ready.dev/.well-known/mcp/server-card.json
+  transport: streamable-http
+  http_methods: [POST]
+  auth: none
+  ui: true
+  status: live
+  listings:
+  - ChatGPT app directory (https://chatgpt.com/apps/agent-ready/asdk_app_6a1cb1116f4881919bfa5e9a3d9d3b48)
+  probe:
+    fetched: '2026-09-19'
+    tools_list:
+      http_status: 200
+      content_type: application/json
+      tool_count: 3
+      file: mcp/agent-ready-dev-mcp-apps-tools.json
+      cors: 'access-control-allow-methods: GET, POST, OPTIONS; allow-headers include MCP-Protocol-Version, MCP-Session-Id, Last-Event-ID'
+    resources_list:
+      http_status: 200
+      resources: [ui://widget/agent-ready-score.html, agent-ready://methodology, agent-ready://checks, agent-ready://llms.txt, agent-ready://specs]
+  authorship: provider
+  tools:
+  - {name: scan_site, auth: none, input_schema: {url: 'string, format uri, maxLength 2000 (required)'}, note: 'No pageLimit on the Apps endpoint; renders the ui:// score card. Rate-limited per opaque openai/subject user id (privacy policy §9).'}
+  - {name: get_scan, auth: none, input_schema: {id: 'string 1-100 chars (required)'}}
+  - {name: ask, auth: none, input_schema: {q: string (required), itemType: string (optional), mode: string (optional)}}
+- id: agent-ready-mcp-stdio
+  name: agent-ready-mcp (npm)
+  transport: stdio
+  install: npx -y agent-ready-mcp@latest
+  package: https://www.npmjs.com/package/agent-ready-mcp
+  repo: https://github.com/mlava/agent-ready-mcp
+  version: 0.7.7
+  published: '2026-09-07'
+  license: MIT
+  auth: 'optional AGENT_READY_API_KEY env; keyless runs on the anonymous free tier (3 scans / 30 days per IP, 25-page depth)'
+  status: published
+  note: >-
+    A thin stdio wrapper over the REST API (POST /api/v1/scans etc.), used by the provider's Cursor plugin
+    (mcp.json) and Gemini CLI extension (gemini-extension.json), both of which spawn npx -y agent-ready-mcp@latest.
+tool_count: 3
+tools:
+- name: scan_site
+  category: scan
+  description: Scan a public URL for AI agent readability; returns scores and per-check remediation.
+  source_operation: openapi/agent-ready-dev-openapi.yml#startScan
+- name: get_scan
+  category: scan
+  description: Fetch a scan by id.
+  source_operation: openapi/agent-ready-dev-openapi.yml#getScan
+- name: ask
+  category: search
+  description: Natural-language NLWeb search over Agent Ready's methodology, checks and specs.
+  source_operation: openapi/agent-ready-dev-openapi.yml#askPost
+webmcp:
+  declared: true
+  source: https://agent-ready.dev/llms.txt
+  note: >-
+    The provider's llms.txt states every page registers scan_site and get_scan with the browser via
+    navigator.modelContext (W3C WebMCP). Declared by the provider; not verified by this pipeline, which does
+    not execute page JavaScript.

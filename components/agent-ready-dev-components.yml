@@ -1,0 +1,52 @@
+generated: '2026-09-19'
+method: searched
+source: https://agent-ready.dev/AGENTS.md (badge) + https://agent-ready.dev/.well-known/mcp.json (ui:// widget) + https://agent-ready.dev/llms.txt (WebMCP) + https://agent-ready.dev/privacy (browser extension)
+description: >-
+  Agent Ready's embeddable / client-side surfaces, distinct from the SDKs in packages/: an SVG score badge any
+  site can embed, an MCP Apps HTML widget (ui:// resource) that renders the score card inside ChatGPT and
+  MCP-UI hosts, a WebMCP registration on every page of agent-ready.dev, and an official browser extension.
+  There is no JavaScript element library — the provider's client-side story is the badge, the widget and the
+  extension.
+families:
+  badge:
+    description: Static SVG badge showing a site's Agent Ready score, served by the API and embedded in READMEs or pages via markdown/HTML.
+    components:
+    - name: Agent Ready score badge
+      url_pattern: https://agent-ready.dev/api/badge/{domain}
+      embed: '[![Agent Ready](https://agent-ready.dev/api/badge/your-domain.com)](https://agent-ready.dev)'
+      example: https://agent-ready.dev/api/badge/agent-ready.dev
+      auth: none
+      source: https://agent-ready.dev/AGENTS.md
+      note: 'Available on every plan (pricing table "SVG badge embed: Yes"); the live badge for the provider''s own site is linked from /about.'
+  mcp_app_widget:
+    description: MCP Apps (OpenAI Apps SDK / MCP-UI) HTML resource returned by resources/read and opened by the scan_site / get_scan tools; renders the interactive score card and per-check breakdown in-conversation.
+    components:
+    - name: Agent Ready score card
+      resource_uri: ui://widget/agent-ready-score.html
+      mime_type: text/html;profile=mcp-app
+      opening_tools: [scan_site, get_scan]
+      endpoints: [https://agent-ready.dev/api/apps/mcp, https://mcp.agent-ready.dev/api/apps/mcp, https://agent-ready.dev/api/v1/mcp]
+      csp: 'connectDomains, resourceDomains, frameDomains and baseUriDomains all empty (self-contained widget)'
+      auth: none on the Apps endpoints; bearer on /api/v1/mcp
+      hosts: [ChatGPT app directory, MCP-UI capable clients]
+      source: well-known/agent-ready-dev-mcp-server-card.json
+  webmcp:
+    description: In-page tool registration for browser-resident agents.
+    components:
+    - name: navigator.modelContext registration
+      tools: [scan_site, get_scan]
+      pages: every page on agent-ready.dev
+      auth: none
+      verified: false
+      note: Declared by the provider in llms.txt ("feature-detected, no-op where unsupported"); not verified by this pipeline, which does not execute page JavaScript.
+  browser_extension:
+    description: Official thin-client extension that scans the current tab on demand.
+    components:
+    - name: Agent Ready browser extension
+      stores: [Chrome Web Store, Microsoft Edge Add-ons, Mozilla AMO]
+      manifest: Manifest v3
+      behaviour: Reads only the current tab URL when invoked; keeps the last 10 scans in local extension storage; no background scanning or telemetry.
+      store_urls: null
+      source: https://agent-ready.dev/privacy#8-browser-extension
+      note: Store listing URLs are not published on the site, so none are recorded.
+libraries: []

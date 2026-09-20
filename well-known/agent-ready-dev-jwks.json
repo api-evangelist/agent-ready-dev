@@ -1,0 +1,13 @@
+{
+  "keys": [
+    {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "0tQpP8Q1UNtxWeRM2bhfgwiUJ6bvVKxUEkAAls_-trk",
+      "y": "wzeBSLwIYWN3hiOwNK6FDTOsTpudObbveGVNluKD23k",
+      "kid": "agent-ready-es256-2026-08-20",
+      "alg": "ES256",
+      "use": "sig"
+    }
+  ]
+}

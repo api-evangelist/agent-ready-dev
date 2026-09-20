@@ -1,0 +1,51 @@
+generated: '2026-09-19'
+method: searched
+source: https://github.com/mlava/agent-ready-cli (README) + https://agent-ready.dev/docs/api#cli
+description: >-
+  The agent-ready command-line client — a thin, zero-dependency wrapper over the hosted REST API (no scanning
+  runs locally). Published on npm as agent-ready-scanner (the bare name agent-ready is blocked by npm's
+  similarity policy); the installed command is `agent-ready`. The package itself is catalogued in
+  packages/agent-ready-dev-packages.yml; this artifact is its command surface.
+docs: https://agent-ready.dev/docs/api#cli
+repo: https://github.com/mlava/agent-ready-cli
+package: agent-ready-scanner
+binary: agent-ready
+version: 0.6.1
+published: '2026-07-31'
+requires: Node.js >= 20.10
+install:
+  npm_global: npm install -g agent-ready-scanner
+  npx: npx agent-ready-scanner scan https://example.com
+authentication:
+  keyless: '`scan`, `ask`, `mcp-scan` and `validate-schema` work without a key; keyless scans run on the anonymous free tier (3 scans / 30 days per IP, 25-page depth, synchronous).'
+  pro_key: 'AGENT_READY_API_KEY env var or --api-key ar_live_… — unlocks 50 scans/month, 250-page depth, history (`get`, `list`) and the polling pipeline.'
+commands:
+  scanning:
+  - {name: scan <url>, description: 'Start a scan, wait for completion and print a readability summary. Options: --page-limit <n>, --no-wait (queue only, print the id), --poll-interval <s> (default 2), --timeout <s> (default 120).', rest: [startScan, getScan]}
+  - {name: get <id>, description: Fetch a scan by id (e.g. one started with --no-wait). Pro key., rest: [getScan]}
+  - {name: list, description: 'List your recent scans, newest first. Options: --limit <n>, --cursor <iso-datetime> (next page). Pro key.', rest: [listScans]}
+  search:
+  - {name: ask <query...>, description: 'Natural-language search over Agent Ready''s own docs. Options: --type <itemType>, --mode summarize. Public.', rest: [askPost]}
+  validators:
+  - {name: mcp-scan <endpoint>, description: 'Connect to a live remote MCP server and grade its tools, resources and prompts (0-100 MCP quality score with fixes). Remote http(s) endpoints only. Public; CI-friendly.', rest: [scanMcp]}
+  - {name: 'validate-schema <url|->', description: 'Validate a page''s JSON-LD structured data (schema lint + agent-coherence checks); pass - to read JSON-LD from stdin. Exits non-zero when any check fails. Public.', rest: []}
+global_options:
+  - {flag: --json, description: Raw JSON output instead of formatted text}
+  - {flag: --api-key <key>, description: Override AGENT_READY_API_KEY}
+  - {flag: --base-url <url>, description: Override AGENT_READY_API_URL (default https://agent-ready.dev)}
+  - {flag: --no-color, description: Disable coloured output (NO_COLOR also honoured)}
+  - {flag: '-h, --help', description: Show help}
+  - {flag: '-v, --version', description: Show version}
+environment:
+  - {name: AGENT_READY_API_KEY, default: null, purpose: Pro API key — required for get/list, optional for scan}
+  - {name: AGENT_READY_API_URL, default: https://agent-ready.dev, purpose: API base URL}
+  - {name: AGENT_READY_SCAN_TIMEOUT_MS, default: 120000, purpose: Overall scan wait budget}
+  - {name: AGENT_READY_GET_TIMEOUT_MS, default: 10000, purpose: Per-request timeout}
+key_flows:
+  - {name: One-off keyless scan, command: npx agent-ready-scanner scan https://example.com}
+  - {name: CI gate on a preview URL, command: 'agent-ready scan https://preview.example.com --json (or the GitHub Action mlava/agent-ready-action@v1 with min-vercel-score)'}
+  - {name: Grade an MCP server in CI, command: agent-ready mcp-scan https://mcp.example.com/mcp --json}
+  - {name: Validate JSON-LD an agent just wrote, command: 'echo ''{"@context":"https://schema.org",…}'' | agent-ready validate-schema - --json'}
+related:
+  skill: skills/agent-ready-dev-agent-ready-cli.md
+  packages: packages/agent-ready-dev-packages.yml

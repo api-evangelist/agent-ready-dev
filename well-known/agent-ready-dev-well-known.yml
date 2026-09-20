@@ -1,0 +1,236 @@
+generated: '2026-09-19'
+method: probed
+source: live probes of /.well-known/ and root discovery paths on every Agent Ready host
+summary: >-
+  Agent Ready is a provider that implements the discovery conventions it audits, and the probe shows it: on
+  the apex host agent-ready.dev, 17 of the named paths return real documents — RFC 8414 authorization-server
+  metadata, RFC 9728 protected-resource metadata, an RFC 9727 api-catalog linkset (served with the correct
+  application/linkset+json profile), ai-plugin.json, an A2A agent card (application/a2a+json), the MCP server
+  card at both /.well-known/mcp.json and /.well-known/mcp/server-card.json, Wildcard agents.json,
+  agent-permissions.json, a UCP profile at /.well-known/ucp, an AI Catalog, x402 and MPP payable-resource
+  documents, a Web Bot Auth http-message-signatures-directory, a JWKS, an Agent Skills Discovery index and a
+  live self-scan status document. The MCP host mcp.agent-ready.dev is the same Vercel deployment and serves the
+  same set (its own server card names the no-auth Apps server). Genuine misses: no security.txt on any host
+  (so NO SecurityTxt pointer), no OpenID Connect discovery, no ucp.json / acp.json / aauth-resource.json, and
+  no APIs.json at any of the three probed locations. www.agent-ready.dev, api.agent-ready.dev and
+  docs.agent-ready.dev resolve but present an EXPIRED TLS certificate (curl error 60), so nothing on them could
+  be read; the provider's canonical host is the apex.
+pointer_basis: >-
+  WellKnown pointer emitted on the strength of the served documents on agent-ready.dev and mcp.agent-ready.dev.
+  APICatalog pointer emitted for the RFC 9727 linkset. HTTPMessageSignatures and ContentSignal pointers emitted
+  for the Web Bot Auth directory and the Content-Signal directives in robots.txt (the consent_identity family).
+  SecurityTxt pointer NOT emitted — RFC 9116 is unimplemented on every host (404 at /.well-known/security.txt
+  and /security.txt).
+false_positive_watch: >-
+  The apex host answers unpublished /.well-known/* paths with a real HTTP 404 (the site's HTML not-found page,
+  ~257 KB), never a 200 shell, so every 200 recorded below is a served document. Two SPA-shell traps do exist
+  on this host and are NOT counted as documents: GET /mcp (200 text/html) is the human MCP install guide, not
+  an MCP endpoint (POST there answers 405), and GET /docs is the developer hub HTML. Every JSON document below
+  was parsed before being recorded.
+hosts:
+- host: https://agent-ready.dev
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-oauth-authorization-server.json
+    note: 'RFC 8414 + WorkOS auth.md agent_auth block. issuer https://agent-ready.dev; grant_types_supported [urn:ietf:params:oauth:grant-type:api-key]; scopes_supported [scan:read, scan:write, ask:read, mcp]; registration_endpoint is the human dashboard, not RFC 7591.'
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-oauth-protected-resource.json
+    note: 'RFC 9728. resource https://agent-ready.dev/api/v1/mcp; authorization_servers [https://agent-ready.dev]; bearer_methods_supported [header].'
+  - path: /.well-known/api-catalog
+    status: 200
+    content_type: application/linkset+json;profile="https://www.rfc-editor.org/info/rfc9727"
+    file: agent-ready-dev-api-catalog.json
+    note: RFC 9727 linkset naming the Scans API, both MCP endpoints and the NLWeb /ask endpoint, each with service-desc (OpenAPI / server card) and service-doc links, plus a status link to /api/health.
+  - path: /.well-known/api-catalog.json
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-ai-plugin.json
+    note: 'name_for_model agent_ready; api.type openapi -> https://agent-ready.dev/openapi.json; auth none; contact support@agent-ready.dev.'
+  - path: /.well-known/ucp.json
+    status: 404
+  - path: /.well-known/ucp
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-ucp.json
+    note: 'UCP 2026-04-08 profile at the extensionless path the UCP spec uses; declares the dev.agent-ready.scanning service over rest, mcp and a2a transports.'
+  - path: /.well-known/acp.json
+    status: 404
+  - path: /.well-known/aauth-resource.json
+    status: 404
+  - path: /.well-known/apis.json
+    status: 404
+  - path: /apis.json
+    status: 404
+  - path: /apis.yml
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 200
+    content_type: application/a2a+json; charset=utf-8
+    file: ../a2a/agent-ready-dev-agent-card.json
+    note: A2A 1.0 agent card, ES256-signed. Graded conformant in a2a/agent-ready-dev-a2a.yml.
+  - path: /.well-known/agent.json
+    status: 404
+  - path: /.well-known/mcp.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-mcp-server-card.json
+    note: 'MCP server card ($schema static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json) listing both hosted servers (agent-ready-apps no-auth, agent-ready bearer), tools, the ui:// resource and an app_handshake block.'
+  - path: /.well-known/mcp/server-card.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-mcp-server-card.json
+    note: Byte-identical to /.well-known/mcp.json (7,977 bytes).
+  - path: /.well-known/agents.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-agents.json
+    note: 'Wildcard agents.json v0.1.0; sources[] points at the OpenAPI; flows[] bind start_scan_flow etc. to startScan/getScan operationIds; when_to_use + instructions blocks.'
+  - path: /.well-known/agent-permissions.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-agent-permissions.json
+    note: 'LAS-WG agent-permissions.json 1.0.0 (last_updated 2026-09-18): read/follow allowed, execute_script/upload_file denied; MUST NOT create accounts or keys without a signed-in human; api[] block names the OpenAPI, MCP and A2A endpoints.'
+  - path: /.well-known/ai-catalog.json
+    status: 200
+    content_type: application/ai-catalog+json
+    file: agent-ready-dev-ai-catalog.json
+    note: AI Catalog v1.0 (ARD data model) listing both MCP server cards, the A2A card, four Agent Skills, the REST API and llms.txt.
+  - path: /.well-known/x402
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-x402.json
+    note: 'x402 v2 payable-resource list: POST https://agent-ready.dev/api/x402/scan, two exact-scheme USDC prices on eip155:8453 (20000 = $0.02 / 250000 = $0.25), facilitator api.cdp.coinbase.com. Same body served at /discovery/resources (Bazaar shape).'
+  - path: /.well-known/mpp
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-mpp.json
+    note: 'MPP payable-resource document expressed as an OpenAPI 3.1.0 stub with x-payment-info on GET/POST /api/x402/scan (protocols x402 + mpp, dynamic USD price 0.02-0.25).'
+  - path: /.well-known/http-message-signatures-directory
+    status: 200
+    content_type: application/http-message-signatures-directory+json; charset=utf-8
+    file: agent-ready-dev-http-message-signatures-directory.json
+    note: 'Web Bot Auth (RFC 9421) key directory: one Ed25519 EdDSA JWK, nbf 2026-01-01, exp 2027-12-31.'
+  - path: /.well-known/jwks.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-jwks.json
+    note: ES256 P-256 signing key kid agent-ready-es256-2026-08-20, the key the agent card's JWS references.
+  - path: /.well-known/agent-skills/index.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-agent-skills-index.json
+    note: 'Agent Skills Discovery (schemas.agentskills.io/discovery/0.2.0): four skill-md entries with sha256 digests — scan-agent-readiness (hosted on this domain), agent-ready-api, agent-ready-mcp, agent-ready-cli (GitHub raw). Saved verbatim under skills/.'
+  - path: /.well-known/agent-readiness-status.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-agent-readiness-status.json
+    note: 'The provider''s own nightly self-scan: vercelScore 96, llmstxtScore 100, 85/86 checks, lastVerified 2026-09-19T07:27Z.'
+  - path: /.well-known/a2h
+    status: 404
+  - path: /llms.txt
+    status: 200
+    content_type: text/plain; charset=utf-8
+    file: ../llms/agent-ready-dev-llms.txt
+  - path: /llms-full.txt
+    status: 200
+    content_type: text/plain; charset=utf-8
+    note: Saved locally only; *-llms-full.txt is gitignored.
+  - path: /openapi.json
+    status: 200
+    content_type: application/json
+    note: Alias of /api/v1/openapi.json (byte-identical, 30,857 bytes). Saved to openapi/_original/.
+  - path: /openapi.yaml
+    status: 200
+    content_type: application/yaml; charset=utf-8
+    note: The provider's own YAML serialization of the same spec. Saved to openapi/agent-ready-dev-openapi.yml.
+  - path: /AGENTS.md
+    status: 200
+    content_type: text/markdown; charset=utf-8
+    file: ../skills/agent-ready-dev-AGENTS.md
+  - path: /robots.txt
+    status: 200
+    content_type: text/plain; charset=utf-8
+    file: agent-ready-dev-robots.txt
+    note: 'Carries Content-Signal directives (search=yes, ai-input=yes, ai-train=yes for named AI crawlers; CCBot and Bytespider disallowed) and explicit Allow lines for the agent endpoints under the otherwise-disallowed /api/ prefix. The same content-signal is echoed as an HTTP response header on every page.'
+  - path: /api/health
+    status: 200
+    content_type: application/json
+    note: '{"ok":true} — the status link named in the api-catalog linkset.'
+- host: https://mcp.agent-ready.dev
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    content_type: application/json
+    note: Byte-identical to the apex document (issuer https://agent-ready.dev).
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    content_type: application/json
+    note: Byte-identical to the apex document (resource https://agent-ready.dev/api/v1/mcp).
+  - path: /.well-known/api-catalog
+    status: 200
+    content_type: application/linkset+json;profile="https://www.rfc-editor.org/info/rfc9727"
+    note: Same linkset as the apex.
+  - path: /.well-known/ai-plugin.json
+    status: 200
+  - path: /.well-known/agent-card.json
+    status: 200
+    content_type: application/a2a+json; charset=utf-8
+    note: Same card as the apex; JWS jku points at https://mcp.agent-ready.dev/.well-known/jwks.json.
+  - path: /.well-known/agent.json
+    status: 404
+  - path: /.well-known/mcp.json
+    status: 200
+  - path: /.well-known/mcp/server-card.json
+    status: 200
+    content_type: application/json
+    file: agent-ready-dev-mcp-host-server-card.json
+    note: 'DIFFERENT document from the apex card: name agent-ready-apps, the no-auth MCP App server card for the dedicated mcp. surface.'
+  - path: /.well-known/agents.json
+    status: 200
+  - path: /.well-known/jwks.json
+    status: 200
+  - path: /.well-known/ucp
+    status: 200
+  - path: /.well-known/ucp.json
+    status: 404
+  - path: /.well-known/acp.json
+    status: 404
+  - path: /.well-known/aauth-resource.json
+    status: 404
+  - path: /.well-known/apis.json
+    status: 404
+  - path: /apis.json
+    status: 404
+  - path: /apis.yml
+    status: 404
+  - path: /llms.txt
+    status: 200
+  - path: /openapi.json
+    status: 200
+  - path: /api/apps/mcp
+    status: 200
+    method: POST
+    note: tools/list answered anonymously with the same three tools as the apex Apps endpoint.
+- host: https://www.agent-ready.dev
+  documents: []
+  note: 'Resolves, but TLS handshake fails: certificate has expired (curl exit 60). Nothing readable; the canonical host is the apex.'
+- host: https://api.agent-ready.dev
+  documents: []
+  note: 'Resolves, but TLS handshake fails: certificate has expired (curl exit 60). Not a documented host — the API base is https://agent-ready.dev/api/v1.'
+- host: https://docs.agent-ready.dev
+  documents: []
+  note: 'Resolves, but TLS handshake fails: certificate has expired (curl exit 60). Not a documented host — docs live at https://agent-ready.dev/docs.'

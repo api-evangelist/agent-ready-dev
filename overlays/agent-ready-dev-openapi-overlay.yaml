@@ -1,0 +1,68 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Agent Ready API
+  version: 1.0.0
+  description: >-
+    Non-destructive enhancements to the provider's OpenAPI 3.1.0 (captured verbatim from
+    https://agent-ready.dev/api/v1/openapi.json on 2026-09-19). Adds tag definitions the spec references but does
+    not declare, links each operation to the artifacts in this repo, and records the agent surfaces (MCP tools,
+    A2A skills, CLI commands) that front each operation. Never mutates openapi/agent-ready-dev-openapi.yml.
+extends: openapi/agent-ready-dev-openapi.yml
+actions:
+- target: $.info
+  update:
+    x-apievangelist-profile: https://github.com/api-evangelist/agent-ready-dev
+    x-apievangelist-captured: '2026-09-19'
+    x-apievangelist-source: https://agent-ready.dev/api/v1/openapi.json
+- target: $
+  update:
+    tags:
+    - name: Scans
+      description: Start, poll and list agent-readability scans (Pro Bearer key); includes the x402/MPP pay-per-scan lane.
+    - name: NLWeb
+      description: Public natural-language /ask endpoint over Agent Ready's methodology, checks and specs.
+    - name: MCP
+      description: Public grader for a live remote MCP server.
+    externalDocs:
+      description: Agent Ready developer documentation
+      url: https://agent-ready.dev/docs
+- target: $.paths['/api/v1/scans'].post
+  update:
+    x-agent-surfaces: {mcp_tool: scan_site, a2a_skill: scan_site, cli: agent-ready scan <url>, agents_json_flow: start_scan_flow}
+    x-idempotency: {header: Idempotency-Key, retention: 24h, conflict: 409 in flight / 422 body mismatch, replay_header: Idempotency-Replayed}
+    x-rate-limit: {per_minute: 10, per_day: 200, headers: [X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After]}
+    x-apievangelist-artifacts: [conventions/agent-ready-dev-conventions.yml, rate-limits/agent-ready-dev-rate-limits.yml, skills/agent-ready-dev-agent-ready-api.md]
+- target: $.paths['/api/v1/scans/{id}'].get
+  update:
+    x-agent-surfaces: {mcp_tool: get_scan, a2a_skill: get_scan, cli: agent-ready get <id>}
+    x-rate-limit: {per_minute: 120, headers: [X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After]}
+- target: $.paths['/api/v1/scans'].get
+  update:
+    x-agent-surfaces: {cli: agent-ready list}
+    x-pagination: {style: cursor, params: [limit, cursor], next_field: nextCursor}
+- target: $.paths['/api/v1/ask'].get
+  update:
+    x-agent-surfaces: {mcp_tool: ask, a2a_skill: ask, cli: agent-ready ask <query>}
+    x-observed-rate-limit: {limit: 30, observed: '2026-09-19', headers: [X-RateLimit-Limit, X-RateLimit-Remaining]}
+- target: $.paths['/api/v1/ask'].post
+  update:
+    x-agent-surfaces: {mcp_tool: ask, a2a_skill: ask, cli: agent-ready ask <query>}
+- target: $.paths['/api/v1/scan/mcp'].post
+  update:
+    x-agent-surfaces: {cli: agent-ready mcp-scan <endpoint>, web: https://agent-ready.dev/mcp-server-scanner}
+- target: $.paths['/api/x402/scan'].get
+  update:
+    x-agentic-commerce: {protocols: [x402 v2, MPP], discovery: [https://agent-ready.dev/.well-known/x402, https://agent-ready.dev/.well-known/mpp], network: 'eip155:8453', asset: USDC, prices_usd: [0.02, 0.25]}
+- target: $.paths['/api/x402/scan'].post
+  update:
+    x-agentic-commerce: {protocols: [x402 v2, MPP], challenge_header: PAYMENT-REQUIRED, payment_header: X-PAYMENT, settlement_header: X-PAYMENT-RESPONSE}
+- target: $.components.securitySchemes.ApiKey
+  update:
+    x-discovery:
+      protected_resource_metadata: https://agent-ready.dev/.well-known/oauth-protected-resource
+      authorization_server_metadata: https://agent-ready.dev/.well-known/oauth-authorization-server
+      www_authenticate: 'Bearer realm="agent-ready", resource_metadata="https://agent-ready.dev/.well-known/oauth-protected-resource"'
+    x-apievangelist-artifacts: [authentication/agent-ready-dev-authentication.yml, scopes/agent-ready-dev-scopes.yml]
+- target: $.components.schemas.Error
+  update:
+    x-apievangelist-artifacts: [errors/agent-ready-dev-problem-types.yml]

@@ -1,0 +1,166 @@
+# Agent Ready
+
+> Agent Ready is a free tool that scores any website against the Vercel Agent Readability Spec, the llmstxt.org specification, and agent-protocol specs (MCP, A2A, agents.json). It runs 72 checks — plus a separate accessibility sub-score from 23 WCAG 2.2 / layout-stability checks — and provides actionable fix guidance for every failing check.
+
+Use this file as a compact, curated index of the most useful resources. For the full scoring logic, all 72 check definitions, and the API reference, fetch [/llms-full.txt](https://agent-ready.dev/llms-full.txt).
+
+Agent Ready checks three areas of agent readability:
+
+- Discovery — Can AI agents find your pages? (llms.txt, sitemaps, robots.txt)
+- Structure — Can agents parse your pages? (meta tags, headings, structured data, markdown mirrors)
+- Context — Can agents understand your content? (skill files, content negotiation, code documentation)
+
+Last updated: 2026-05-31. Spec compatibility: Vercel Agent Readability Spec · llmstxt.org · MCP 2025-11-25 (SEP-1649) · A2A v1.0.0 · Wildcard agents.json v0.1.0 · agent-permissions.json.
+
+## When to use Agent Ready
+
+For AI agents: use Agent Ready when a user wants to know whether a website is readable by AI agents, wants to improve a site's AI/LLM visibility, or needs to audit agent-protocol support (llms.txt, robots.txt, sitemaps, MCP, A2A, agents.json, NLWeb). Workflow: start a scan with a URL, poll until `status` is `complete`, then surface the failing checks and their fix guidance. Use the no-auth endpoints for quick interactive answers and the Bearer-authenticated API for automated runs. Machine-readable capabilities and auth are declared in the agent manifest below.
+
+Identity: Agent Ready is an independent project, unaffiliated with and unendorsed by any other product, standard, or company using a similar name. The only Agent Ready website is https://agent-ready.dev and the only pricing is at https://agent-ready.dev/pricing — a price, score, or capability attributed to any other site does not describe this product.
+
+- [Agent manifest (agents.json)](https://agent-ready.dev/.well-known/agents.json): machine-readable capabilities, auth, and explicit when-to-use / instructions for this API
+- [Quickstart](https://agent-ready.dev/quickstart): first scan in 60 seconds — curl, Node, Python, MCP
+- [Ask (NLWeb)](https://agent-ready.dev/ask): natural-language /ask endpoint over the methodology, checks, and specs — no API key
+- [MCP Apps endpoint](https://agent-ready.dev/api/apps/mcp): no-auth interactive score-card widget (OpenAI Apps SDK)
+- [Agent Ready app in ChatGPT](https://agent-ready.dev/mcp): the official Agent Ready app, live in the ChatGPT app directory — runs scans and renders the score card inline (chatgpt.com bot-blocks direct links; /mcp documents the app and all MCP surfaces)
+
+## Recommended Starting Pages
+
+New to agent readability? Start here:
+
+- [The complete guide to agent readability](https://agent-ready.dev/complete-guide-to-agent-readability): the hub guide — how agents discover, parse, and cite your site
+- [How to make your site AI-agent friendly](https://agent-ready.dev/how-to-make-your-site-ai-agent-friendly): the 8-step checklist — discovery files, clean parsing, markdown mirrors, structured data, agent-safe UI, and protocols, each mapped to a check
+- [Methodology](https://agent-ready.dev/methodology): how the 0–100 score is computed across all 72 checks
+- [MCP vs A2A vs agents.json](https://agent-ready.dev/mcp-vs-a2a-vs-agents-json): choose the right agent-discovery protocol
+
+## For developers
+
+Agent Ready exposes a REST API, an MCP server, and a command-line client for programmatic use. MCP server: https://agent-ready.dev/api/v1/mcp.
+
+**Start here:** [Agent Ready developer documentation](https://agent-ready.dev/docs) — single hub indexing every dev resource below.
+
+- [Agent Ready developer documentation](https://agent-ready.dev/docs): canonical dev hub — REST API, MCP, OpenAPI, skills, GitHub, methodology
+- [Agent Ready quickstart](https://agent-ready.dev/quickstart): first scan in 60 seconds — curl, Node, Python, MCP
+- [Agent authentication for Agent Ready](https://agent-ready.dev/auth): how agents discover, register, use, and revoke credentials (WorkOS auth.md aligned)
+- [Agent Ready API & integrations](https://agent-ready.dev/docs/api): REST API, MCP server, and GitHub Action reference
+- [Agent Ready REST API reference](https://agent-ready.dev/docs/api/reference): interactive OpenAPI 3.1 console — every endpoint and schema
+- [OpenAPI 3.1 spec](https://agent-ready.dev/api/v1/openapi.json): every endpoint, request/response schema, auth requirement
+- [MCP server endpoint](https://agent-ready.dev/api/v1/mcp): streamable-http MCP server, Bearer-token authenticated
+- [MCP Apps endpoint](https://agent-ready.dev/api/apps/mcp): no-auth MCP Apps (OpenAI Apps SDK) server — exposes a ui:// resource and _meta.ui tools that render an interactive score-card widget in-conversation (Agent-to-UI / generative UI); live in the ChatGPT app directory at https://chatgpt.com/apps/agent-ready/asdk_app_6a1cb1116f4881919bfa5e9a3d9d3b48
+- [MCP App (dedicated surface)](https://mcp.agent-ready.dev/api/apps/mcp): the same MCP App as a standalone surface on the mcp. subdomain, with its own SEP-1649 server card at https://mcp.agent-ready.dev/.well-known/mcp/server-card.json — no auth; exposes the ui://widget/agent-ready-score.html resource and _meta.ui-bound tools (scan_site, get_scan) that render the interactive score card in ChatGPT / MCP-UI hosts, plus a text-only ask tool (NL search over Agent Ready's methodology, checks, and specs)
+- [WebMCP surface](https://agent-ready.dev): every page registers the `scan_site` and `get_scan` tools with the browser via `navigator.modelContext` (W3C WebMCP), so an in-page AI agent can run a scan without screen-scraping — feature-detected, no-op where unsupported, no auth
+- [MCP server card](https://agent-ready.dev/.well-known/mcp/server-card.json): SEP-1649 discovery JSON for one-click MCP install
+- [OAuth protected-resource metadata](https://agent-ready.dev/.well-known/oauth-protected-resource): RFC 9728 auth discovery document
+- [OAuth authorization-server metadata](https://agent-ready.dev/.well-known/oauth-authorization-server): RFC 8414 + WorkOS auth.md agent_auth block
+- [Pay per scan with x402](https://agent-ready.dev/.well-known/x402): Agent Ready accepts x402 micropayments — an anonymous agent over the free quota can pay per scan with no account ($0.02 USDC for 25 pages, $0.25 for 250 pages, USDC on Base mainnet). POST /api/scan with an `X-PAYMENT` header (or `"payment": true` to get the 402 challenge); payable resources are advertised at /.well-known/x402 and /discovery/resources in the x402 Bazaar shape. Agent-facing only: this is for autonomous agents that carry a wallet and call /api/scan directly — it is not a human payment option, and the Agent Ready CLI/MCP/SDK do not use it (they authenticate with an API key). The dedicated always-paid endpoint is /api/x402/scan (x402 v2, CAIP-2 eip155:8453). The resource is registered on x402scan (https://www.x402scan.com/server/171b24ae-08d1-448e-ac02-91209c90718f), live on Agentic.Market (https://agentic.market/services/agent-ready-dev), and discoverable in the Coinbase CDP Bazaar (https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources)
+- [Agent Ready MCP server on GitHub](https://github.com/mlava/agent-ready-mcp): MIT-licensed stdio MCP wrapper for the Agent Ready REST API
+- [agent-ready-mcp on npm](https://www.npmjs.com/package/agent-ready-mcp): `npx -y agent-ready-mcp@latest`
+- [Agent Ready CLI on GitHub](https://github.com/mlava/agent-ready-cli): MIT-licensed command-line client for the Agent Ready REST API
+- [agent-ready CLI on npm](https://www.npmjs.com/package/agent-ready-scanner): standalone terminal client — `npx agent-ready-scanner scan <url>` (scan, get, list, ask); installs the `agent-ready` command
+- [Agent Ready SDKs on GitHub](https://github.com/mlava/agent-ready-sdk): MIT-licensed official client SDKs (JavaScript/TypeScript + Python) for the REST API — import the `AgentReady` class to scan programmatically
+- [agent-ready-client on npm](https://www.npmjs.com/package/agent-ready-client): JavaScript/TypeScript client SDK — `npm install agent-ready-client`; `import { AgentReady } from "agent-ready-client"`
+- [agent-ready-client on PyPI](https://pypi.org/project/agent-ready-client/): Python client SDK — `pip install agent-ready-client`; `from agent_ready import AgentReady`
+- [Agent Ready Skills on GitHub](https://github.com/mlava/agent-ready-skills): installable Agent Skills repo (two skills, MIT-licensed)
+- [Agent Ready Skills on skills.sh](https://www.skills.sh/mlava/agent-ready-skills): canonical skills.sh listing — install both skills with `npx skills add mlava/agent-ready-skills`
+- [agent-ready-api skill (skills.sh)](https://www.skills.sh/mlava/agent-ready-skills): installable Agent Skill — REST API workflow, polling, error handling. `npx skills add mlava/agent-ready-skills/skills/agent-ready-api`
+- [agent-ready-mcp skill (skills.sh)](https://www.skills.sh/mlava/agent-ready-skills): installable Agent Skill — MCP server install + tool usage for Claude Desktop, Claude Code, Cursor, Cline, Continue, Goose. `npx skills add mlava/agent-ready-skills/skills/agent-ready-mcp`
+- [agent-ready-cli skill (skills.sh)](https://www.skills.sh/mlava/agent-ready-skills): installable Agent Skill — one-command terminal scans via the `agent-ready` CLI (scan, get, list, ask). `npx skills add mlava/agent-ready-skills/skills/agent-ready-cli`
+- [Agent Ready Cursor plugin on GitHub](https://github.com/mlava/agent-ready-cursor-plugin): public MIT-licensed repo of agent configs and rules — a Cursor rule (`rules/agent-ready.mdc`), MCP server config (`mcp.json`), and a skill that wire Agent Ready into Cursor
+- [Agent Ready Gemini extension on GitHub](https://github.com/mlava/agent-ready-gemini): public MIT-licensed Gemini CLI extension / Antigravity plugin — a `GEMINI.md` agent config plus `/agent-ready:*` slash commands over the published MCP server and CLI. Install: `gemini extensions install https://github.com/mlava/agent-ready-gemini` (Antigravity: `agy plugin import gemini`)
+- [Agent Ready in the Gemini CLI extensions directory](https://geminicli.com/extensions/?name=mlavaagent-ready-gemini): the extension's official listing in Google's Gemini CLI extensions directory — browse and install from the Gemini CLI catalog
+
+## Pages
+
+- [Home](https://agent-ready.dev): Enter a URL to scan your site
+- [About](https://agent-ready.dev/about): What Agent Ready is, why agent readability matters, and how to reach the team — general, abuse, and privacy contacts, source, status, and the public /ask endpoint
+- [Agent Readability Score](https://agent-ready.dev/agent-readability-score): Get your Vercel Agent Readability score
+- [Structured Data Validator](https://agent-ready.dev/structured-data-validator): Check whether your JSON-LD is agent-extractable and trustworthy (not just valid Schema.org) — freshness honesty, canonical/markdown coherence, entity-name consistency, and extraction signal
+- [llms.txt Checker](https://agent-ready.dev/llms-txt-checker): Validate your llms.txt file against the llmstxt.org spec
+- [llms.txt Generator](https://agent-ready.dev/llms-txt-generator): Build a spec-valid llms.txt from a URL — pages discovered from your sitemap, named from each page's own title and description
+- [AI robots.txt Generator](https://agent-ready.dev/ai-robots-txt-generator): Build a robots.txt AI-crawler policy that separates training, search, and user-triggered bots — opt out of model training without losing AI citations
+- [agents.json Generator](https://agent-ready.dev/agents-json-generator): Generate a spec-valid Wildcard agents.json from OpenAPI, with operations missing operationId reported instead of invented
+- [agent-permissions.json Generator](https://agent-ready.dev/agent-permissions-generator): Generate a spec-valid agent-permissions.json (LAS-WG v1.0.0) declaring which actions AI agents may take on your site, with api references verified against the manifests your site really publishes
+- [API Catalog Generator](https://agent-ready.dev/api-catalog-generator): Generate a spec-valid /.well-known/api-catalog linkset (RFC 9727) that points agents at your API description documents, with entries verified against the manifests your site really publishes
+- [A2A Card Generator](https://agent-ready.dev/agent-card-generator): Generate a spec-valid A2A agent card (a2a.proto v1.0.0) declaring your agent's interfaces, skills, and capabilities — valid against C5 by construction
+- [AGENTS.md Validator](https://agent-ready.dev/agents-md-validator): Check your skill file for coding agents
+- [MCP Server Card Validator](https://agent-ready.dev/mcp-card-validator): Validate your MCP server card at /.well-known/mcp.json
+- [MCP Server Scanner](https://agent-ready.dev/mcp-server-scanner): Connect to a live remote MCP server and grade its tools, resources, and prompts against MCP best practices (MCP quality score)
+- [A2A Agent Card Validator](https://agent-ready.dev/agent-card-validator): Validate your A2A agent card at /.well-known/agent-card.json
+- [agents.json Validator](https://agent-ready.dev/agents-json-validator): Validate your Wildcard agents.json manifest
+- [agent-permissions.json Validator](https://agent-ready.dev/agent-permissions-validator): Validate your agent-permissions.json manifest
+- [UCP Validator](https://agent-ready.dev/ucp-validator): Validate a Universal Commerce Protocol profile at /.well-known/ucp
+- [ACP Validator](https://agent-ready.dev/acp-validator): Validate an Agentic Commerce Protocol discovery document at /.well-known/acp.json
+- [x402 Checker](https://agent-ready.dev/x402-checker): Check an HTTP 402 Payment Required handshake for agent payments
+- [API & integrations](https://agent-ready.dev/docs/api): REST API, MCP server, CLI, and CI/CD action — CLI and stdio MCP scans work keyless on the anonymous free tier; REST keys and the Action are Pro
+- [Quickstart](https://agent-ready.dev/quickstart): Run your first Agent Ready scan in under 60 seconds — curl, Node, Python, MCP
+- [Authentication](https://agent-ready.dev/auth): How agents authenticate to Agent Ready — Bearer tokens, OAuth protected-resource metadata, WWW-Authenticate discovery
+- [Ask (NLWeb)](https://agent-ready.dev/ask): Public natural-language /ask endpoint over Agent Ready's methodology, checks, and specs — POST JSON, returns Schema.org-typed results; also exposed as the `ask` MCP tool at /api/v1/mcp
+
+## Guides
+
+- [MCP vs A2A vs agents.json](https://agent-ready.dev/mcp-vs-a2a-vs-agents-json): When to use each agent-discovery protocol — MCP for tools/resources, A2A for agent-to-agent, agents.json for OpenAPI-backed REST APIs
+- [Methodology](https://agent-ready.dev/methodology): How Agent Ready computes its score — 72 checks across four categories, mapped to the Vercel Agent Readability Spec and llmstxt.org standard
+- [The complete guide to agent readability](https://agent-ready.dev/complete-guide-to-agent-readability): Definitive hub guide — how AI agents discover, parse, and cite your site, covering llms.txt, AGENTS.md, MCP cards, JSON-LD, and the Vercel spec
+- [State of Agent Readability](https://agent-ready.dev/state-of-agent-readability): Original research from the Agent Ready scan corpus — llms.txt and AGENTS.md adoption, the most common readability failures, agent-protocol uptake, and how often sites block AI crawlers (aggregate, anonymous, refreshed daily)
+- [State of Agent Readability 2026](https://agent-ready.dev/state-of-agent-readability/2026): The 2026 edition — a frozen, immutable snapshot of the same research across 523 distinct sites (captured 2026-07-15), for a stable citation; a curated corpus, not a web-wide census
+- [State of MCP Servers](https://agent-ready.dev/state-of-mcp-servers): Original research from the Agent Ready MCP scan corpus — how many of the most popular MCP servers an agent can reach without a per-server credential, score and tool-count distributions, and the most common tool-quality gaps (aggregate, anonymous, refreshed daily)
+- [Common agent-readability mistakes](https://agent-ready.dev/common-agent-readability-mistakes): The failures almost every site makes — missing AGENTS.md sections, no sitemap.md, an under-structured llms.txt, no llms-full.txt, stale sitemap.xml — each with a concrete fix
+- [What is sitemap.md?](https://agent-ready.dev/what-is-sitemap-md): The human- and agent-readable markdown index of your site — sitemap.md vs sitemap.xml, where to serve it, how to structure it (S10/S11), and how to generate one
+- [What is llms.txt?](https://agent-ready.dev/what-is-llms-txt): A plain-English guide to the curated Markdown file that maps your key content for AI agents — what goes in it, a minimal example, how it differs from robots.txt and sitemap.xml, and how to validate one
+- [What is llms-full.txt?](https://agent-ready.dev/what-is-llms-full-txt): The companion to llms.txt that inlines your full content into one file for single-fetch LLM context — how it differs from llms.txt and how to generate it (scanner check L10)
+- [How to make your site AI-agent friendly](https://agent-ready.dev/how-to-make-your-site-ai-agent-friendly): Practical 8-step checklist answering the literal query — discovery files, clean parsing, markdown mirrors, JSON-LD, an agent-safe interaction layer (semantic HTML, stable layouts, real buttons), and agent protocols, each mapped to a verifiable check
+- [Can an AI agent use your website? 6 questions to ask](https://agent-ready.dev/can-an-ai-agent-use-your-website): The six questions that decide agent readiness — discovery, documentation comprehension, authentication, API invocation, emerging standards, and what to fix first — each answered with the concrete artifact behind it (llms.txt, markdown mirrors, AGENTS.md, OpenAPI, agents.json, API catalog, MCP, A2A, agent-permissions.json)
+- [Agent Ready vs alternatives](https://agent-ready.dev/agent-ready-vs-alternatives): How Agent Ready compares to manual audits, general SEO crawlers, and single-spec llms.txt validators — the only scanner that checks llms.txt, the Vercel Agent Readability Spec, and every agent-protocol manifest in one pass
+- [Agent Ready vs isitagentready.com](https://agent-ready.dev/agent-ready-vs-isitagentready): How agent-ready.dev compares to Cloudflare's isitagentready.com — two AI agent-readiness scanners that differ on surfaces (web-only vs web + API + CLI + MCP + SDK + extension), deterministic published checks vs AI-generated tips, and vendor independence
+- [Lighthouse Agentic Browsing vs Agent Ready](https://agent-ready.dev/agent-ready-vs-lighthouse-agentic-browsing): How Google's Lighthouse Agentic Browsing category (Chrome M150+) compares to Agent Ready — six browser-driven audits covering WebMCP, the accessibility tree, CLS, and llms.txt, against 72 fetch-based checks spanning the discovery layer. Complementary, not competing
+- [Agent readability glossary](https://agent-ready.dev/glossary): Plain-language definitions of llms.txt, AGENTS.md, MCP, A2A, content negotiation, and the rest of the agent-readability vocabulary
+- [What is agent readability?](https://agent-ready.dev/what-is-agent-readability): The definition — how easily AI agents discover, parse, and act on a site, the three surfaces it spans (discovery files, structural signals, protocol manifests), how it differs from SEO and GEO, and how it's measured
+- [What is AGENTS.md?](https://agent-ready.dev/what-is-agents-md): The definition — a plain-Markdown file at a repo root that tells AI coding agents how to build, test, and work in your codebase, how it differs from README.md, CLAUDE.md and .cursorrules, and how it relates to llms.txt
+- [What is agent-permissions.json?](https://agent-ready.dev/what-is-agent-permissions-json): The LAS-WG v1.0.0 manifest that declares which actions AI agents may take on a site — the 16 verbs, the strict flag, the invalid-means-absent rule, and how it differs from robots.txt (scanner check C7)
+- [What is NLWeb?](https://agent-ready.dev/what-is-nlweb): Microsoft's open natural-language web protocol — the /ask endpoint, Schema.org-typed results, and why every NLWeb instance is also an MCP server
+- [What is A2UI?](https://agent-ready.dev/what-is-a2ui): Google's declarative format for agent-driven UI — JSON component trees vs MCP Apps HTML widgets, delivery over A2A/AG-UI, and what a site can actually publish (scanner check C17)
+- [What is A2H?](https://agent-ready.dev/what-is-a2h): Twilio's open Agent-to-Human protocol — the five intents (INFORM, COLLECT, AUTHORIZE, ESCALATE, RESULT), the signed message envelope, the /.well-known/a2h discovery document, and how it completes the MCP/A2A stack
+- [What is AG-UI?](https://agent-ready.dev/what-is-ag-ui): CopilotKit's open event-based protocol that streams AI agent runs into user-facing apps — typed SSE/WebSocket events, the three-layer stack with MCP and A2A, shared state and human-in-the-loop, and how it differs from A2UI
+- [What is Web Bot Auth?](https://agent-ready.dev/what-is-web-bot-auth): the IETF effort letting agents prove identity with HTTP Message Signatures (RFC 9421) — a public key directory at /.well-known/http-message-signatures-directory on the operator's domain, signed request headers, origin-side verification via CDN/WAF, and why there are no Web Bot Auth response headers to probe for (scanner check C14)
+- [What is agent.json?](https://agent-ready.dev/what-is-agent-json): the contested filename — three incompatible draft specs (Agent Web Protocol, a payments manifest, an inbox protocol) all claim /.well-known/agent.json, the same path where A2A served its Agent Card before v0.3.0 renamed it to agent-card.json, and none is the same thing as Wildcard's agents.json (scanner check C6 covers the latter)
+- [What is an agent-ready website?](https://agent-ready.dev/what-is-an-agent-ready-website): the definition, the first controlled evidence (Elnaffar & Rashidi 2026: 89.3% vs 49.3% task success, 18–40% lower token cost), the three dimensions of agent readiness (interpretability, executability, decision reliability) mapped to publishable artifacts, and the five-step path to getting there
+- [What is WebMCP?](https://agent-ready.dev/what-is-webmcp): the W3C `navigator.modelContext` API for in-browser agent tools — page-to-agent verbs vs MCP's agent-to-server and A2UI's agent-to-UI, why there's no static discovery artifact, and how to make a site WebMCP-ready
+- [What is MPP?](https://agent-ready.dev/what-is-mpp): the Machine Payments Protocol — Stripe and Tempo's `Payment` HTTP authentication scheme, the 402 challenge/credential/receipt handshake, how it differs from x402, and how to make a paid endpoint MPP-ready (scanner checks C18/C19)
+- [Specs Agent Ready validates against](https://agent-ready.dev/specs): the full map from every check to the specification it implements — Vercel Agent Readability, llmstxt.org, MCP, A2A, agents.json, UCP, x402, MPP, NLWeb, API Catalog, and more, each with its canonical link and check IDs
+
+## Discovery
+
+Agent Ready implements the conventions it audits — these first-party manifests are live and machine-readable:
+
+- [MCP server card](https://agent-ready.dev/.well-known/mcp.json): SEP-1649 server metadata, transport, and capabilities (also at /.well-known/mcp/server-card.json)
+- [A2A agent card](https://agent-ready.dev/.well-known/agent-card.json): A2A v1.0.0 capability and skill discovery
+- [agents.json](https://agent-ready.dev/.well-known/agents.json): Wildcard v0.1.0 OpenAPI-backed action manifest
+- [agent-permissions.json](https://agent-ready.dev/.well-known/agent-permissions.json): declared agent action permissions
+- [API catalog](https://agent-ready.dev/.well-known/api-catalog): RFC 9727 linkset of the public API, its OpenAPI description, and the MCP endpoint
+- [UCP business profile](https://agent-ready.dev/.well-known/ucp): Universal Commerce Protocol 2026-04-08 profile declaring the scanning service over its REST, MCP, and A2A transports, under our own dev.agent-ready.* namespace (we sell audits, not goods, so no dev.ucp.shopping claim). No payment_handlers block: x402 and MPP publish no referenceable JSON Schema, and what we accept is advertised at /.well-known/x402 and /.well-known/mpp
+- [AI catalog](https://agent-ready.dev/.well-known/ai-catalog.json): AI Catalog v1.0 manifest — the Agentic Resource Discovery (ARD) data model — listing every agentic artifact on this domain in one typed list: both MCP surfaces, the A2A agent card, all four Agent Skills, the REST API, and this llms.txt. Also advertised as `rel="ai-catalog"` in the homepage Link header
+- [Agent-readiness status](https://agent-ready.dev/.well-known/agent-readiness-status.json): our own live self-scan result — score, llms.txt score, corpus percentile, per-category check counts, and pass/fail vs our threshold; re-scanned nightly
+- [OAuth protected-resource metadata](https://agent-ready.dev/.well-known/oauth-protected-resource): RFC 9728 metadata for the MCP endpoint
+- [Schema feed](https://agent-ready.dev/schema/pages.json): JSON-LD @graph of primary pages with dateModified, indexed by /schemamap.xml
+
+## Specs
+
+- [Vercel Agent Readability Spec](https://vercel.com/kb/guide/agent-readability-spec): The full specification we check against
+- [llmstxt.org](https://llmstxt.org): The llms.txt file specification
+- [Model Context Protocol (2025-11-25)](https://modelcontextprotocol.io): MCP server cards and OAuth protected-resource discovery
+- [A2A Protocol (v1.0.0)](https://a2a-protocol.org): Agent-to-agent discovery at `/.well-known/agent-card.json`
+- agents.json (Wildcard v0.1.0): discovery manifest checked at `/agents.json` or `/.well-known/agents.json`
+- agent-permissions.json: agent permissions manifest checked at `/.well-known/agent-permissions.json`
+
+## Optional
+
+Secondary material — useful for deep dives, but safe to skip when context is tight:
+
+- [Pricing](https://agent-ready.dev/pricing): Free and Pro tiers — plus pay-per-scan via x402 micropayments ($0.02 / $0.25 USDC on Base, no account)
+- [llms.txt vs sitemap.xml](https://agent-ready.dev/llms-txt-vs-sitemap-xml): When to use each — audience, format, scope, and why most sites should publish both
+- [ACP vs UCP vs AP2 vs x402](https://agent-ready.dev/acp-vs-ucp-vs-ap2-vs-x402): Comparison of the four agentic-commerce protocols — agent-surface checkout, merchant interoperability, delegated authorization, machine-to-machine payment
+- [AGENTS.md vs CLAUDE.md vs .cursorrules](https://agent-ready.dev/agents-md-vs-claude-md-vs-cursorrules): Which skill-file convention to ship for coding agents — and why most teams ship more than one
+- [How to add an llms.txt file to a Next.js site](https://agent-ready.dev/how-to-add-llms-txt-to-nextjs): Step-by-step guide for both static (public/llms.txt) and dynamic (route handler) approaches in Next.js 13+
+- [How to add an llms.txt file to a WordPress site](https://agent-ready.dev/how-to-add-llms-txt-to-wordpress): Step-by-step guide to the manual file-upload and plugin approaches, with the Apache/Nginx rewrite gotcha and spec validation
+- [How to publish an MCP server card](https://agent-ready.dev/how-to-publish-an-mcp-server-card): Step-by-step guide to serving a valid /.well-known/mcp.json per SEP-1649, including transport, capabilities, and OAuth metadata
+- [How to write an effective AGENTS.md](https://agent-ready.dev/how-to-write-an-effective-agents-md): Step-by-step guide to writing a skill file that coding agents (Codex, Claude Code, Cursor) can actually use

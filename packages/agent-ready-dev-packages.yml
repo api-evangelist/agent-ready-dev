@@ -1,0 +1,115 @@
+generated: '2026-09-19'
+method: searched
+source: >-
+  registry.npmjs.org and pypi.org metadata endpoints (unauthenticated), the GitHub account github.com/mlava
+  (the provider's stated source home on /about and /docs), and https://agent-ready.dev/docs + /docs/api +
+  /llms.txt, which name every package below as official. Versions and publish dates were read from the
+  registries on 2026-09-19.
+summary:
+  first_party_sdk_count: 2
+  first_party_package_count: 7
+  third_party_package_count: 0
+  note: >-
+    All first-party code is published under the personal GitHub account github.com/mlava (Mark Lavercombe, the
+    sole maintainer per /about) with author "Agent Ready" and MIT licence; the provider's docs, llms.txt and
+    AI Catalog link each package, so official: true is well founded. The bare npm name agent-ready is blocked
+    by npm's similarity policy (the CLI README says so), which is why the CLI ships as agent-ready-scanner.
+    Every package is a thin client over the hosted REST API — no scanning runs locally.
+github_organization:
+  found: true
+  url: https://github.com/mlava
+  note: A user account, not an organisation; it is what the provider publishes as its source home.
+packages:
+- language: javascript
+  kind: sdk
+  registry: npm
+  name: agent-ready-client
+  url: https://www.npmjs.com/package/agent-ready-client
+  install: npm install agent-ready-client
+  import: import { AgentReady } from "agent-ready-client"
+  repo: https://github.com/mlava/agent-ready-sdk
+  official: true
+  license: MIT
+  version: 0.3.1
+  published: '2026-07-16'
+  note: Zero-dependency; Node 18+, Deno, Bun, edge, browser. Methods scan / getScan / listScans / ask.
+- language: python
+  kind: sdk
+  registry: pypi
+  name: agent-ready-client
+  url: https://pypi.org/project/agent-ready-client/
+  install: pip install agent-ready-client
+  import: from agent_ready import AgentReady
+  repo: https://github.com/mlava/agent-ready-sdk
+  official: true
+  license: MIT
+  version: 0.3.1
+  published: '2026-07-16'
+  note: Pure standard library, type-hinted, Python 3.8+.
+- language: javascript
+  kind: mcp-server
+  registry: npm
+  name: agent-ready-mcp
+  url: https://www.npmjs.com/package/agent-ready-mcp
+  install: npx -y agent-ready-mcp@latest
+  bin: agent-ready-mcp
+  repo: https://github.com/mlava/agent-ready-mcp
+  official: true
+  license: MIT
+  version: 0.7.7
+  published: '2026-09-07'
+  note: stdio MCP wrapper over the REST API; keyless on the anonymous free tier; listed on Smithery and the official MCP registry. See mcp/agent-ready-dev-mcp.yml.
+- language: javascript
+  kind: cli
+  registry: npm
+  name: agent-ready-scanner
+  url: https://www.npmjs.com/package/agent-ready-scanner
+  install: npm install -g agent-ready-scanner
+  bin: agent-ready
+  repo: https://github.com/mlava/agent-ready-cli
+  official: true
+  license: MIT
+  version: 0.6.1
+  published: '2026-07-31'
+  note: Installs the `agent-ready` command. Command surface in cli/agent-ready-dev-cli.yml.
+- language: yaml
+  kind: github-action
+  registry: github
+  name: mlava/agent-ready-action
+  url: https://github.com/mlava/agent-ready-action
+  install: 'uses: mlava/agent-ready-action@v1'
+  official: true
+  license: MIT
+  version: v1.0.1
+  published: null
+  note: Composite action; latest tag v1.0.1 (tags v1, v1.0.0, v1.0.1); GitHub reports no formal release object, so no release date is available — last push 2026-07-18.
+- language: markdown
+  kind: agent-skills
+  registry: skills.sh
+  name: mlava/agent-ready-skills
+  url: https://www.skills.sh/mlava/agent-ready-skills
+  install: npx skills add mlava/agent-ready-skills
+  repo: https://github.com/mlava/agent-ready-skills
+  official: true
+  license: MIT
+  version: '1.1.4'
+  published: '2026-09-07'
+  note: Three SKILL.md files (agent-ready-api 1.0.7, agent-ready-mcp 1.1.4, agent-ready-cli 1.1.4 — versions from their frontmatter; date is the repo's last push). Saved verbatim under skills/.
+- language: json
+  kind: editor-extension
+  registry: github
+  name: mlava/agent-ready-gemini
+  url: https://github.com/mlava/agent-ready-gemini
+  install: gemini extensions install https://github.com/mlava/agent-ready-gemini
+  official: true
+  license: MIT
+  version: 0.1.1
+  published: null
+  note: Gemini CLI extension / Antigravity plugin (gemini-extension.json version 0.1.1) that spawns npx -y agent-ready-mcp@latest; listed in Google's Gemini CLI extensions directory. Sibling Cursor plugin at https://github.com/mlava/agent-ready-cursor-plugin (mcp.json + rules/agent-ready.mdc).
+distribution_channels:
+- {channel: ChatGPT app directory, url: https://chatgpt.com/apps/agent-ready/asdk_app_6a1cb1116f4881919bfa5e9a3d9d3b48, surface: MCP Apps endpoint}
+- {channel: Smithery, url: https://smithery.ai/servers/agent-ready/agent-ready-mcp}
+- {channel: Official MCP registry, url: 'https://registry.modelcontextprotocol.io/v0/servers?search=agent-ready-mcp'}
+- {channel: Gemini CLI extensions directory, url: 'https://geminicli.com/extensions/?name=mlavaagent-ready-gemini'}
+- {channel: Browser extension, note: 'Chrome Web Store, Edge Add-ons and Mozilla AMO per privacy policy §8 — store URLs not published on the site, so not recorded as a package.'}
+third_party_packages: []

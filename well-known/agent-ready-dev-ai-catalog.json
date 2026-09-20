@@ -1,0 +1,153 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Agent Ready",
+    "identifier": "agent-ready.dev",
+    "documentationUrl": "https://agent-ready.dev/docs/api",
+    "logoUrl": "https://agent-ready.dev/icon-512.png"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:agent-ready.dev:mcp:agent-ready",
+      "displayName": "Agent Ready MCP server card",
+      "type": "application/mcp-server-card+json",
+      "url": "https://agent-ready.dev/.well-known/mcp/server-card.json",
+      "description": "AI agent readability scanner. Scan any site and get scores + per-check remediation via MCP tools.",
+      "tags": [
+        "mcp",
+        "scanner",
+        "agent-readability",
+        "llms-txt"
+      ],
+      "extensions": {
+        "dev.agent-ready.catalog": {
+          "capabilities": [
+            "scan_site",
+            "get_scan",
+            "ask"
+          ],
+          "representativeQueries": [
+            "scan this site for AI agent readability",
+            "what is my agent-readability score",
+            "how do I fix a failing llms.txt check"
+          ]
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:agent-ready.dev:mcp:agent-ready-apps",
+      "displayName": "Agent Ready MCP App (no auth)",
+      "type": "application/mcp-server-card+json",
+      "url": "https://mcp.agent-ready.dev/.well-known/mcp/server-card.json",
+      "description": "Agent Ready MCP App (OpenAI Apps SDK / MCP-UI): renders an interactive AI agent-readability score-card widget inline in the conversation.",
+      "tags": [
+        "mcp",
+        "mcp-app",
+        "mcp-ui",
+        "widget",
+        "no-auth"
+      ],
+      "extensions": {
+        "dev.agent-ready.catalog": {
+          "capabilities": [
+            "scan_site",
+            "get_scan",
+            "ask"
+          ]
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:agent-ready.dev:a2a:agent-ready",
+      "displayName": "Agent Ready A2A agent card",
+      "type": "application/a2a-agent-card+json",
+      "url": "https://agent-ready.dev/.well-known/agent-card.json",
+      "tags": [
+        "a2a",
+        "agent-card",
+        "jsonrpc"
+      ],
+      "extensions": {
+        "dev.agent-ready.catalog": {
+          "capabilities": [
+            "scan_site",
+            "get_scan",
+            "ask"
+          ]
+        }
+      }
+    },
+    {
+      "identifier": "urn:air:agent-ready.dev:skill:scan-agent-readiness",
+      "displayName": "Scan agent readiness",
+      "type": "application/agent-skills+md",
+      "url": "https://agent-ready.dev/.well-known/agent-skills/scan-agent-readiness/SKILL.md",
+      "description": "Agent Ready (agent-ready.dev) scores any website against 72 agent-readability checks (site, page, llms.txt, agent protocols) and returns per-check pass/fail with fix guidance.",
+      "tags": [
+        "agent-skill",
+        "scanner",
+        "agent-readability"
+      ]
+    },
+    {
+      "identifier": "urn:air:agent-ready.dev:skill:agent-ready-api",
+      "displayName": "Agent Ready REST API skill",
+      "type": "application/agent-skills+md",
+      "url": "https://raw.githubusercontent.com/mlava/agent-ready-skills/main/skills/agent-ready-api/SKILL.md",
+      "description": "Use the Agent Ready (agent-ready.dev) REST API to scan any public URL for AI agent-readability — start a scan, poll for results, handle errors. For tool-native access, use agent-ready-mcp instead. Install: npx skills add mlava/agent-ready-skills/skills/agent-ready-api",
+      "tags": [
+        "agent-skill",
+        "scanner",
+        "agent-readability"
+      ]
+    },
+    {
+      "identifier": "urn:air:agent-ready.dev:skill:agent-ready-mcp",
+      "displayName": "Agent Ready MCP server skill",
+      "type": "application/agent-skills+md",
+      "url": "https://raw.githubusercontent.com/mlava/agent-ready-skills/main/skills/agent-ready-mcp/SKILL.md",
+      "description": "Install and use the Agent Ready (agent-ready.dev) MCP server (Claude Desktop, Claude Code, Cursor, Cline, Continue, Goose) to scan any URL for AI agent-readability via MCP tool calls. For direct REST access, use agent-ready-api instead. Install: npx skills add mlava/agent-ready-skills/skills/agent-ready-mcp",
+      "tags": [
+        "agent-skill",
+        "scanner",
+        "agent-readability"
+      ]
+    },
+    {
+      "identifier": "urn:air:agent-ready.dev:skill:agent-ready-cli",
+      "displayName": "Agent Ready CLI skill",
+      "type": "application/agent-skills+md",
+      "url": "https://raw.githubusercontent.com/mlava/agent-ready-skills/main/skills/agent-ready-cli/SKILL.md",
+      "description": "Use the Agent Ready (agent-ready.dev) command-line client (agent-ready / npm agent-ready-scanner) to scan any URL for AI agent-readability in one terminal command — scan, get, list, ask. Best when the agent can run shell commands. For raw HTTP use agent-ready-api; for MCP tool calls use agent-ready-mcp. Install: npx skills add mlava/agent-ready-skills/skills/agent-ready-cli",
+      "tags": [
+        "agent-skill",
+        "scanner",
+        "agent-readability"
+      ]
+    },
+    {
+      "identifier": "urn:air:agent-ready.dev:api:agent-ready",
+      "displayName": "Agent Ready REST API",
+      "type": "application/openapi+json;version=3.1",
+      "url": "https://agent-ready.dev/api/v1/openapi.json",
+      "tags": [
+        "api",
+        "rest",
+        "openapi",
+        "scanner"
+      ]
+    },
+    {
+      "identifier": "urn:air:agent-ready.dev:docs:llms-txt",
+      "displayName": "Agent Ready llms.txt",
+      "type": "text/plain",
+      "url": "https://agent-ready.dev/llms.txt",
+      "description": "llms.txt index of Agent Ready's pages, public API, MCP surfaces, and machine-readable discovery documents.",
+      "tags": [
+        "llms-txt",
+        "documentation",
+        "discovery"
+      ]
+    }
+  ]
+}

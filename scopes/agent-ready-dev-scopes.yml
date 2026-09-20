@@ -1,0 +1,50 @@
+generated: '2026-09-19'
+method: searched
+source: https://agent-ready.dev/.well-known/oauth-authorization-server
+docs: https://agent-ready.dev/auth
+note: >-
+  The OpenAPI declares no oauth2 securityScheme (derive-oauth-scopes.py found zero), so this file is built from
+  the provider's own RFC 8414 authorization-server metadata and RFC 9728 protected-resource metadata, which
+  both advertise scopes_supported. IMPORTANT: the scopes are ADVERTISED, NOT ENFORCED — /auth states there is
+  no OAuth flow, keys are long-lived ar_live_ Bearer secrets issued from the dashboard, and access is decided
+  by plan tier (Free vs Pro) rather than by scope. A token never carries a scope, and a 403 for a plan mismatch
+  is reported as insufficient_scope. Recorded as the provider's declared permission vocabulary.
+schemes:
+- name: ApiKey (Bearer)
+  type: http
+  scheme: bearer
+  bearerFormat: ar_live_<prefix>_<secret>
+  source: openapi/agent-ready-dev-openapi.yml
+  issuance: human-mediated at https://agent-ready.dev/dashboard/api-keys (Pro plan)
+  authorization_server_metadata: well-known/agent-ready-dev-oauth-authorization-server.json
+  protected_resource_metadata: well-known/agent-ready-dev-oauth-protected-resource.json
+  grant_types_supported: [urn:ietf:params:oauth:grant-type:api-key]
+  token_endpoint_auth_methods_supported: [none]
+  response_types_supported: [none]
+  bearer_methods_supported: [header]
+  dynamic_client_registration: false
+  revocation: dashboard only (no RFC 7009 endpoint)
+scopes:
+- scope: scan:read
+  description: Read scans — GET /api/v1/scans/{id}, GET /api/v1/scans, the get_scan MCP tool and A2A tasks/get. (Description inferred from the operation surface; the metadata publishes names only.)
+  sources: [well-known/agent-ready-dev-oauth-authorization-server.json, well-known/agent-ready-dev-oauth-protected-resource.json]
+  enforced: false
+- scope: scan:write
+  description: Start scans — POST /api/v1/scans and the scan_site MCP tool / A2A skill.
+  sources: [well-known/agent-ready-dev-oauth-authorization-server.json, well-known/agent-ready-dev-oauth-protected-resource.json]
+  enforced: false
+- scope: ask:read
+  description: The NLWeb /api/v1/ask endpoint and the ask tool/skill — public today, no key required.
+  sources: [well-known/agent-ready-dev-oauth-authorization-server.json, well-known/agent-ready-dev-oauth-protected-resource.json]
+  enforced: false
+- scope: mcp
+  description: Access to the hosted MCP endpoint https://agent-ready.dev/api/v1/mcp (the resource named in the protected-resource metadata).
+  sources: [well-known/agent-ready-dev-oauth-authorization-server.json, well-known/agent-ready-dev-oauth-protected-resource.json]
+  enforced: false
+effective_permission_model:
+  basis: plan tier
+  tiers:
+    anonymous: ask, scanMcp, x402 lane, POST /api/scan (3 scans / 30 days per IP), MCP Apps endpoint tools/call
+    free_signed_in: web scans only (10 / 30 days); cannot mint API keys
+    pro: ar_live_ key — startScan, getScan, listScans, hosted MCP tools/call, A2A scan_site / tasks/get
+  docs: https://agent-ready.dev/pricing

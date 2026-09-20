@@ -1,0 +1,1 @@
+{"resource":"https://agent-ready.dev/api/v1/mcp","authorization_servers":["https://agent-ready.dev"],"bearer_methods_supported":["header"],"scopes_supported":["scan:read","scan:write","ask:read","mcp"],"resource_documentation":"https://agent-ready.dev/auth"}

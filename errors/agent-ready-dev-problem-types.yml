@@ -1,0 +1,99 @@
+generated: '2026-09-19'
+method: searched
+format: json-envelope
+source: >-
+  Derived from the 4xx/5xx responses declared in openapi/agent-ready-dev-openapi.yml (OpenAPI 3.1.0, 8
+  operations, Error schema) and enriched from https://agent-ready.dev/docs/api (Authentication — error
+  responses; Rate limits and retry) and https://agent-ready.dev/auth (Errors; RFC 6749 §5.2 codes). The live
+  401 on GET https://agent-ready.dev/api was observed on 2026-09-19.
+rfc9457: false
+envelope:
+  media_type: application/json
+  default_shape: '{ "error": { "code": string, "message": string } }'
+  schema: Error
+  example_code: subscription_required
+  alternate_shape: >-
+    Authentication failures may use the OAuth 2.0 (RFC 6749 §5.2) flat shape {"error": "<code>",
+    "error_description": "<text>"} — observed live on GET /api as {"error":"unauthorized",
+    "error_description":"Agent Ready's API requires a Bearer token. …","documentation":"https://agent-ready.dev/auth",
+    "openapi":"https://agent-ready.dev/api/v1/openapi.json","resource_metadata":"https://agent-ready.dev/.well-known/oauth-protected-resource"}.
+    The docs name invalid_request (400), invalid_token (401) and insufficient_scope (403) for this shape.
+  note: >-
+    Not RFC 9457 — no type URI, title or instance fields and no application/problem+json media type. The
+    401 carries WWW-Authenticate: Bearer realm="agent-ready", resource_metadata="…/.well-known/oauth-protected-resource",
+    which is the agent-recoverable part of the contract.
+problems:
+- status: 400
+  title: Bad Request
+  operations: [startScan, askGet, askPost, scanMcp, x402Scan]
+  meaning: Invalid request body, URL or Idempotency-Key (startScan); missing or invalid query (ask); bad, non-http(s) or private/reserved endpoint address (scanMcp); invalid JSON body, URL or blocked address (x402Scan).
+  codes: [invalid_request]
+  remediation: Fix the named field. Private, local and reserved addresses are refused by design — do not retry them.
+  retryable: false
+- status: 401
+  title: Unauthorized
+  operations: [startScan, listScans, getScan]
+  meaning: Missing, malformed or revoked Bearer API key.
+  codes: [invalid_token, unauthorized]
+  headers: ['WWW-Authenticate: Bearer realm="agent-ready", error="invalid_token", resource_metadata="https://agent-ready.dev/.well-known/oauth-protected-resource"']
+  remediation: Follow the resource_metadata link to discover the authorization server; issue or rotate a key at https://agent-ready.dev/dashboard/api-keys (Pro plan).
+  retryable: false
+- status: 402
+  title: Payment Required
+  operations: [x402ScanChallenge, x402Scan]
+  meaning: x402 v2 / MPP payment challenge. The PAYMENT-REQUIRED header (and JSON body) carry {x402Version, resource, accepts[], error?}; also returned when payment verification fails.
+  remediation: 'Sign the EIP-3009 USDC authorization for one of the accepts[] entries and resend with an X-PAYMENT header (or an MPP Authorization: Payment credential). $0.02 for 25 pages, $0.25 for 250, USDC on Base.'
+  retryable: true
+- status: 403
+  title: Forbidden — subscription required
+  operations: [startScan, listScans, getScan]
+  meaning: The key is valid but the account is not on a Pro subscription (or the plan tier does not allow the endpoint).
+  codes: [subscription_required, insufficient_scope]
+  remediation: Upgrade at https://agent-ready.dev/pricing; a Free-tier account cannot mint a working key for /api/v1/scans.
+  retryable: false
+- status: 404
+  title: Not Found
+  operations: [getScan, askPost]
+  meaning: Scan id unknown or not owned by this key (getScan); no results — the NLWeb failure envelope (askPost).
+  remediation: Verify the scan id (it is also the share token in a /scan/<id> URL); rephrase the ask query.
+  retryable: false
+- status: 409
+  title: Conflict — idempotent request in flight
+  operations: [startScan]
+  meaning: A request with the same Idempotency-Key is still in progress.
+  remediation: 'Wait and retry with the same key; the completed response will be replayed with Idempotency-Replayed: true.'
+  retryable: true
+- status: 422
+  title: Unprocessable — Idempotency-Key reuse
+  operations: [startScan]
+  meaning: The Idempotency-Key was already used with a different request body.
+  remediation: Generate a fresh key for a different request; never reuse a key across different bodies. Keys are retained 24 hours.
+  retryable: false
+- status: 429
+  title: Too Many Requests
+  operations: [startScan, getScan, askGet, askPost, scanMcp]
+  meaning: Rate limit exceeded — 10 scan starts/min or 200/day per Pro key; 120 polls/min on getScan; ask observed at a 30-request window unauthenticated.
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After]
+  remediation: Honour Retry-After (seconds) and back off with exponential delay plus full jitter. The MCP endpoint shares the same counter.
+  retryable: true
+- status: 500
+  title: Internal Server Error
+  operations: [startScan, listScans, getScan, askGet, askPost]
+  remediation: Retry with exponential backoff and full jitter (base ~250 ms, cap 30 s, ~5 attempts).
+  retryable: true
+- status: 502
+  title: Bad Gateway — upstream scan failed
+  operations: [scanMcp, x402Scan]
+  meaning: The remote MCP server could not be scanned (scanMcp); the scan failed after payment (x402Scan).
+  remediation: Retry. For x402Scan the provider's spec says to retry; no refund mechanism is documented.
+  retryable: true
+- status: 503
+  title: Service Unavailable
+  operations: [startScan, listScans, getScan, askGet, askPost]
+  remediation: Retry with backoff; check https://status.agent-ready.dev/ for incidents.
+  retryable: true
+scan_status_semantics:
+  note: >-
+    A completed scan is not an error even when the site scored poorly; a scan whose status is "failed" means
+    no page could be read and carries no usable score (SKILL.md scan-agent-readiness). Per-check outcomes are
+    pass | fail | warn | error inside the result, not HTTP errors.

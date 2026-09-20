@@ -1,0 +1,73 @@
+generated: '2026-09-19'
+method: derived
+source: >-
+  Derived by aligning the LIVE MCP tools/list from https://agent-ready.dev/api/v1/mcp and
+  https://agent-ready.dev/api/apps/mcp (both answered anonymously; saved to mcp/agent-ready-dev-mcp-tools.json and
+  mcp/agent-ready-dev-mcp-apps-tools.json) and the three A2A skills in a2a/agent-ready-dev-agent-card.json with
+  the provider's OpenAPI 3.1.0 at openapi/agent-ready-dev-openapi.yml (8 operations). The provider's own
+  /.well-known/agents.json (Wildcard v0.1.0) binds the same flows to the same operationIds, which corroborates
+  every high-confidence row below.
+purpose: >-
+  Make the MCP tool / A2A skill the first-class discovery unit and bind it to its backing REST operation. Agent
+  Ready's three surfaces are projections of one scanner: MCP and A2A expose the same three names, REST exposes
+  those plus a list endpoint, a public MCP-server grader and a paid x402 lane that neither agent surface carries.
+surfaces:
+  rest_openapi: openapi/agent-ready-dev-openapi.yml            # 8 operations, 19 schemas; source in openapi/_original/
+  mcp: https://agent-ready.dev/api/v1/mcp                        # tools/list PUBLIC (observed); tools/call for scan_site/get_scan needs Bearer key
+  mcp_apps: https://agent-ready.dev/api/apps/mcp                 # tools/list and tools/call PUBLIC, no auth
+  a2a: https://agent-ready.dev/api/v1/a2a                        # skills from the served agent card; JSON-RPC endpoint not called by this pipeline
+  graphql: null
+crosswalk:
+- tool: scan_site
+  a2a_skill: scan_site
+  category: scan
+  rest: [startScan, getScan]
+  binding: rest
+  confidence: high
+  note: >-
+    The tool's inputSchema (url required, pageLimit 1-2000 optional) is exactly StartScanRequest. The tool
+    description says a long scan returns an id to poll — i.e. the server performs POST /api/v1/scans (202 +
+    Location) and, when time allows, follows with GET /api/v1/scans/{id}; the outputSchema is the Scan shape
+    (vercelScore, llmstxtScore, accessibilityScore, protocolResults …). On the Apps endpoint pageLimit is not
+    exposed. agents.json binds the same pair as its start_scan_flow.
+- tool: get_scan
+  a2a_skill: get_scan
+  category: scan
+  rest: [getScan]
+  binding: rest
+  confidence: high
+  note: 'inputSchema {id} is the getScan path parameter; the A2A card maps the skill to the tasks/get method.'
+- tool: ask
+  a2a_skill: ask
+  category: search
+  rest: [askPost, askGet]
+  binding: rest
+  confidence: high
+  note: >-
+    inputSchema {q, itemType, mode} mirrors AskRequest (query, itemType, mode) on POST /api/v1/ask; GET
+    /api/v1/ask carries the same fields as query parameters plus stream. Public on every surface.
+mcp_only: []
+rest_only:
+- operation: listScans
+  capability: scan history
+  reason: Cursor-paginated list of the key's past scans (Pro); no MCP tool or A2A skill lists history — the CLI exposes it as `agent-ready list`.
+- operation: scanMcp
+  capability: MCP server grading
+  reason: >-
+    Public POST /api/v1/scan/mcp grades a live remote MCP server (mcpScore 0-100). Not an MCP tool on either
+    hosted endpoint; the CLI exposes it as `agent-ready mcp-scan <endpoint>`.
+- operation: x402ScanChallenge
+  capability: agent payment
+  reason: GET /api/x402/scan returns the x402 v2 / MPP HTTP 402 challenge. Payment is a REST-only lane; the provider's docs say the MCP server, CLI and SDK never use it.
+- operation: x402Scan
+  capability: agent payment
+  reason: POST /api/x402/scan runs a scan paid with an X-PAYMENT header (USDC on Base). REST-only, no account.
+coverage:
+  mcp_tools_named: 3
+  mcp_tools_bound: 3
+  mcp_only: 0
+  a2a_skills_named: 3
+  a2a_skills_bound: 3
+  rest_operations_total: 8
+  rest_operations_with_tool: 4
+  rest_only: 4

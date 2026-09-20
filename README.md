@@ -64,5 +64,12 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Agent Ready is a company surfaced via the API Evangelist harvest backlog (source: a2a-registry) and added to the network as a stub for full-pipeline profiling.
-- https://agent-ready.dev/
+Agent Ready (agent-ready.dev) is an independent AI agent-readability scanner built and maintained by Mark Lavercombe. It scores any public website against the Vercel Agent Readability Spec, llmstxt.org and the agent-protocol manifests (MCP, A2A, agents.json, agent-permissions.json, UCP, x402, MPP, NLWeb, API catalog, Web Bot Auth) — 72 checks plus a separate WCAG 2.2 accessibility sub-score — and returns a 0-100 score with per-check remediation. The scanner is exposed as an OpenAPI 3.1 REST API, a hosted Streamable HTTP MCP server (plus a no-auth MCP Apps endpoint), a signed A2A 1.0 agent card, a stdio MCP package and CLI on npm, JavaScript and Python SDKs, a GitHub Action, and a pay-per-scan x402/MPP lane in USDC on Base.
+
+- Website: https://agent-ready.dev/
+- Developer docs: https://agent-ready.dev/docs
+- OpenAPI 3.1: https://agent-ready.dev/api/v1/openapi.json
+- MCP server: https://agent-ready.dev/api/v1/mcp (guide at https://agent-ready.dev/mcp)
+- A2A agent card: https://agent-ready.dev/.well-known/agent-card.json
+- Pricing: https://agent-ready.dev/pricing
+- Profiled 2026-09-19 from the provider's public surface; first surfaced through a2aregistry.org.

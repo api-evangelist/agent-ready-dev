@@ -1,0 +1,163 @@
+generated: '2026-09-19'
+method: searched
+source: https://agent-ready.dev/specs
+derived_from: openapi/agent-ready-dev-openapi.yml
+docs:
+- https://agent-ready.dev/specs
+- https://agent-ready.dev/auth
+- https://agent-ready.dev/docs/api
+summary: >-
+  Agent Ready's conformance profile is the agent-discovery and agent-commerce protocol stack — it is a scanner
+  for those conventions and implements each one it grades on its own host: A2A 1.0 (signed card), MCP
+  2025-06-18 with SEP-2127 server cards, RFC 9728 / RFC 8414 discovery, RFC 9727 api-catalog, Wildcard
+  agents.json, LAS-WG agent-permissions.json, UCP 2026-04-08, x402 v2 and MPP payment challenges, NLWeb /ask,
+  Web Bot Auth (RFC 9421 directory), Agent Skills Discovery, llms.txt, Content-Signal, and an Idempotency-Key
+  contract with RFC 8594/9745 sunset headers. It publishes NO enterprise certification (no SOC 2 / ISO 27001
+  claim anywhere on the site, no trust center), NO RFC 9116 security.txt, NO OpenID Connect, and its errors
+  are a proprietary envelope rather than RFC 9457. No Compliance pointer is emitted.
+standards:
+- id: a2a
+  name: Agent2Agent protocol
+  version: '1.0'
+  conforms: true
+  evidence: 'a2a/agent-ready-dev-agent-card.json served at https://agent-ready.dev/.well-known/agent-card.json with Content-Type application/a2a+json — protocolVersion "1.0", supportedInterfaces[] JSONRPC at https://agent-ready.dev/api/v1/a2a, capabilities object, skills[] of 3, ES256 JWS signature. Graded conformant in a2a/agent-ready-dev-a2a.yml.'
+  domain_standard_signature: true
+- id: mcp
+  name: Model Context Protocol
+  version: '2025-06-18'
+  conforms: true
+  evidence: 'POST https://agent-ready.dev/api/v1/mcp initialize returned protocolVersion "2025-06-18", serverInfo {agent-ready, 1.0.0}; tools/list returned 3 tools with inputSchema, outputSchema and annotations. See mcp/agent-ready-dev-mcp.yml.'
+  domain_standard_signature: true
+- id: mcp-server-card
+  name: MCP Server Card (SEP-2127 / SEP-1649)
+  conforms: true
+  evidence: '/.well-known/mcp.json and /.well-known/mcp/server-card.json (200, $schema static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json); a second card on mcp.agent-ready.dev for the Apps server.'
+- id: mcp-apps
+  name: MCP Apps / OpenAI Apps SDK (ui:// resources)
+  conforms: true
+  evidence: 'resources/list on /api/apps/mcp returned ui://widget/agent-ready-score.html with mimeType text/html;profile=mcp-app; tools carry _meta.ui.resourceUri; listed in the ChatGPT app directory.'
+- id: json-rpc-2.0
+  conforms: true
+  evidence: Both MCP endpoints answer {"jsonrpc":"2.0", ...}; the A2A card declares the JSONRPC binding.
+- id: rfc9728-protected-resource-metadata
+  conforms: true
+  evidence: '/.well-known/oauth-protected-resource returns valid metadata (200) on agent-ready.dev and mcp.agent-ready.dev; GET /api 401 carries WWW-Authenticate resource_metadata pointing at it.'
+- id: rfc8414-authorization-server-metadata
+  conforms: true
+  verification: partial
+  evidence: '/.well-known/oauth-authorization-server returns a metadata document (200) with issuer, scopes_supported and the WorkOS auth.md agent_auth block. It declares grant_types_supported [urn:ietf:params:oauth:grant-type:api-key], response_types_supported [none] and a registration_endpoint that is the human dashboard — a discovery document for an API-key regime, not an OAuth 2.0 authorization server.'
+- id: oauth2
+  conforms: false
+  evidence: 'No OAuth 2.0 flow: the docs at /auth say there is no authorization-code flow, no client-credentials token endpoint, no RFC 7591 dynamic client registration and no RFC 7009 revocation; the OpenAPI securitySchemes declares only http bearer. The scopes_supported list (scan:read, scan:write, ask:read, mcp) is advertised but no token carries scopes.'
+- id: oauth2-dynamic-client-registration
+  conforms: false
+  evidence: 'registration_endpoint in the AS metadata is https://agent-ready.dev/dashboard/api-keys (human-mediated); /auth states "no RFC 7591 dynamic client registration".'
+- id: oidc-discovery
+  conforms: false
+  evidence: /.well-known/openid-configuration returns 404 on both hosts.
+- id: workos-auth-md
+  name: WorkOS auth.md agent authentication
+  conforms: true
+  verification: partial
+  evidence: 'AS metadata carries an agent_auth block (register_uri, identity_types_supported [anonymous, identity_assertion], skill https://agent-ready.dev/auth.md); /auth documents the subset supported (Bearer + WWW-Authenticate discovery) and marks identity_assertion / id-jag "not supported".'
+- id: web-bot-auth
+  name: Web Bot Auth (RFC 9421 HTTP Message Signatures directory)
+  conforms: true
+  evidence: '/.well-known/http-message-signatures-directory (200, application/http-message-signatures-directory+json) with one Ed25519 JWK.'
+- id: rfc9727-api-catalog
+  conforms: true
+  evidence: '/.well-known/api-catalog (200, application/linkset+json;profile="https://www.rfc-editor.org/info/rfc9727") with service-desc / service-doc / status relations.'
+  domain_standard_signature: true
+- id: wildcard-agents-json
+  version: 0.1.0
+  conforms: true
+  evidence: '/.well-known/agents.json (200): agentsJson 0.1.0, sources[] -> OpenAPI, flows[] bound to startScan/getScan operationIds.'
+- id: agent-permissions-json
+  name: LAS-WG agent-permissions.json
+  version: 1.0.0
+  conforms: true
+  evidence: '/.well-known/agent-permissions.json (200): schema_version 1.0.0, resource_rules, action_guidelines, api[] block naming openapi/mcp/a2a endpoints.'
+- id: ucp
+  name: Universal Commerce Protocol
+  version: '2026-04-08'
+  conforms: true
+  verification: partial
+  evidence: '/.well-known/ucp (200) declares the dev.agent-ready.scanning service over rest, mcp and a2a transports under the provider''s own namespace; no dev.ucp.shopping claim and no payment_handlers block (the provider says so in llms.txt).'
+- id: acp
+  name: Agentic Commerce Protocol discovery
+  conforms: false
+  evidence: /.well-known/acp.json returns 404.
+- id: x402
+  name: x402 HTTP payment protocol
+  version: v2
+  conforms: true
+  evidence: 'GET https://agent-ready.dev/api/x402/scan returned HTTP 402 with a PAYMENT-REQUIRED header that base64-decodes to {x402Version: 2, resource, accepts: [two exact-scheme USDC entries on eip155:8453, payTo 0x5c08…C42E, maxTimeoutSeconds 300]}; /.well-known/x402 and /discovery/resources publish the same resources; the OpenAPI declares the 402 on x402ScanChallenge and x402Scan. No payment was made by this pipeline.'
+  domain_standard_signature: true
+- id: mpp
+  name: Machine Payments Protocol (IETF Payment HTTP auth scheme)
+  conforms: true
+  verification: partial
+  evidence: '/.well-known/mpp (200) publishes x-payment-info with protocols [x402, mpp] for /api/x402/scan; the OpenAPI carries the same x-payment-info extension; the pricing page documents the WWW-Authenticate: Payment challenge and Payment-Receipt. The Payment challenge itself was not exercised.'
+- id: caip-2
+  conforms: true
+  evidence: 'network "eip155:8453" (Base) in the x402 accepts[] entries.'
+- id: nlweb
+  name: NLWeb natural-language /ask
+  conforms: true
+  evidence: 'GET https://agent-ready.dev/api/v1/ask?query=… returned 200 application/json (unauthenticated) with Schema.org-typed results; /ask alias documented; askGet/askPost in the OpenAPI.'
+- id: llms-txt
+  conforms: true
+  evidence: '/llms.txt (200, text/plain) with H1, blockquote summary, H2 sections and an Optional section; /llms-full.txt also served; every response carries Link: </llms.txt>; rel="describedby".'
+- id: content-signal
+  name: Content-Signal (robots.txt + response header)
+  conforms: true
+  evidence: 'robots.txt Content-Signal: search=yes, ai-input=yes, ai-train=yes per AI user-agent; the same string is emitted as a content-signal HTTP response header.'
+- id: agent-skills-discovery
+  name: Agent Skills Discovery (Cloudflare RFC 0.2.0)
+  conforms: true
+  evidence: '/.well-known/agent-skills/index.json (200) with four skill-md entries and sha256 digests; /.well-known/agent-skills/scan-agent-readiness/SKILL.md served.'
+- id: ai-plugin-manifest
+  conforms: true
+  evidence: '/.well-known/ai-plugin.json (200) with api.type openapi and auth none.'
+- id: idempotency-key
+  name: Idempotency-Key request header
+  conforms: true
+  evidence: 'openapi/agent-ready-dev-openapi.yml#startScan declares the Idempotency-Key header parameter (1-255 chars), 409/422 semantics, Idempotency-Replayed response header and 24-hour retention. Partial coverage (one of three write operations) — see conventions/agent-ready-dev-conventions.yml.'
+- id: rfc8594-sunset-header
+  conforms: true
+  verification: policy-only
+  evidence: 'https://agent-ready.dev/docs/api#versioning-and-deprecation-policy commits to Sunset (RFC 8594) and Deprecation (RFC 9745) headers with 90 days notice; the OpenAPI info.description repeats the policy. No operation is currently deprecated, so no header has been observed.'
+- id: rfc9745-deprecation-header
+  conforms: true
+  verification: policy-only
+  evidence: Same policy text as above.
+- id: cursor-pagination
+  conforms: true
+  evidence: 'openapi/agent-ready-dev-openapi.yml#listScans — limit + cursor query parameters, nextCursor response field.'
+- id: rate-limit-headers
+  conforms: true
+  evidence: 'X-RateLimit-Limit / X-RateLimit-Remaining observed live on GET /api/v1/ask (30 / 29); Retry-After documented on 429 and declared in the OpenAPI 429 response headers.'
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: 'Errors are application/json {error:{code,message}} (schema Error); zero application/problem+json media types in the spec. See errors/agent-ready-dev-problem-types.yml.'
+- id: rfc9116-security-txt
+  conforms: false
+  evidence: /.well-known/security.txt and /security.txt return 404 on every host.
+- id: openapi-3.1
+  conforms: true
+  version: 3.1.0
+  evidence: 'https://agent-ready.dev/api/v1/openapi.json (200, 30,857 bytes, 5 paths / 8 operations / 19 schemas) and the YAML twin at /openapi.yaml — captured to openapi/.'
+- id: wcag-2.2
+  conforms: true
+  verification: self-reported
+  evidence: 'The provider''s own nightly self-scan at /.well-known/agent-readiness-status.json reports accessibilityScore 100 (18/18 homepage checks) against its WCAG 2.2 suite. Self-scan, not an independent audit or a VPAT.'
+- id: soc2-type-ii
+  conforms: false
+  evidence: 'No SOC 2 claim anywhere on the site; the privacy policy says security posture details are "available on request for business customers". No trust center (probe-security-programs.py: trust=none).'
+- id: iso-27001
+  conforms: false
+  evidence: No ISO 27001 claim published.
+- id: gdpr
+  conforms: true
+  verification: policy-only
+  evidence: 'https://agent-ready.dev/privacy names the UK GDPR / EU GDPR controller, legal bases, a sub-processor list with transfer safeguards (IDTA / SCCs), retention periods and data-subject rights with a 30-day response aim.'
