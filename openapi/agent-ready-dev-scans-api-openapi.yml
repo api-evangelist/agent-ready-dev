@@ -1,0 +1,693 @@
+openapi: 3.2.0
+info:
+  title: Agent Ready Dev Scans API
+  version: 1.0.0
+  contact:
+    name: Agent Ready
+    url: https://agent-ready.dev/about#contact
+    email: support@agent-ready.dev
+  x-guidance: 'Scan any public website for AI agent-readability. POST /api/x402/scan with a JSON body {"url":"https://…"} and pay per scan with no account via x402 (X-PAYMENT header) or MPP (Authorization: Payment) — $0.02 for up to 25 pages, $0.25 for up to 250, USDC on Base mainnet. The same scan is available free under quota at POST /api/scan, or with an API key for Pro subscribers. Read-only; only public URLs are scanned.'
+  description: 'Operations tagged Scans across 2 of this provider''s published API definitions: agent-ready-dev-openapi.json, agent-ready-dev-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://agent-ready.dev
+security:
+- ApiKey: []
+tags:
+- name: Scans
+paths:
+  /api/v1/scans:
+    post:
+      operationId: startScan
+      summary: Start a scan
+      description: 'Queues an asynchronous scan and returns a 202 with the scan id. Poll GET /api/v1/scans/{id} until status is ''completed'' or ''failed''.
+
+
+        Supply an optional `Idempotency-Key` header to make retries safe: the first request runs the scan and any retry carrying the same key replays the original 202 (with `Idempotency-Replayed: true`) instead of starting a duplicate. Reusing a key with a different request body returns 422; a retry that arrives while the first is still in flight returns 409. Keys are retained for 24 hours.'
+      tags:
+      - Scans
+      parameters:
+      - schema:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Optional client-generated key (1-255 chars, [A-Za-z0-9_-]) that makes this POST safe to retry. The same key replays the original response.
+          example: scan-2026-06-01-abc123
+        required: false
+        description: Optional client-generated key (1-255 chars, [A-Za-z0-9_-]) that makes this POST safe to retry. The same key replays the original response.
+        name: Idempotency-Key
+        in: header
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartScanRequest'
+      responses:
+        '202':
+          description: Scan queued. The `Location` response header carries the polling URL (per RFC 7231 §6.3.3); the same URL is also returned as `pollUrl` in the body.
+          headers:
+            Location:
+              description: Absolute or root-relative URL to poll for the scan result.
+              schema:
+                type: string
+                example: /api/v1/scans/V1StGXR8_Z
+            Idempotency-Key:
+              description: Echoed back when the request carried an `Idempotency-Key`.
+              schema:
+                type: string
+                example: scan-2026-06-01-abc123
+            Idempotency-Replayed:
+              description: '`true` when this response is a replay of an earlier request with the same `Idempotency-Key` (the scan was not started again).'
+              schema:
+                type: string
+                example: 'true'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartScanResponse'
+        '400':
+          description: Invalid request body, URL, or Idempotency-Key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Subscription required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: A request with the same `Idempotency-Key` is still in progress.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: The `Idempotency-Key` was already used with a different request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded. Response carries `Retry-After` (seconds) plus `X-RateLimit-Limit` and `X-RateLimit-Remaining`. Back off using exponential delay with jitter — see the Rate limits & retry section in the docs.
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests permitted in the current window.
+              schema:
+                type: integer
+                example: 10
+            X-RateLimit-Remaining:
+              description: Requests remaining in the current window. `0` on a 429 response.
+              schema:
+                type: integer
+                example: 0
+            Retry-After:
+              description: Seconds until a slot frees in the sliding window (RFC 7231 §7.1.3). Honour this before retrying.
+              schema:
+                type: integer
+                example: 42
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service temporarily unavailable. Retry with backoff.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      operationId: listScans
+      summary: List recent scans
+      description: Returns scans owned by the API key's user, newest first. Cursor-paginate by passing the `nextCursor` value from a previous response as the `cursor` query parameter on the next request; `nextCursor` is only returned when the page filled exactly to `limit`.
+      tags:
+      - Scans
+      parameters:
+      - schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+        required: false
+        name: limit
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: Opaque pagination cursor (ISO 8601 datetime returned as `nextCursor` by a previous response). Returns scans strictly older than the cursor.
+          example: '2026-04-19T00:00:00.000Z'
+        required: false
+        description: Opaque pagination cursor (ISO 8601 datetime returned as `nextCursor` by a previous response). Returns scans strictly older than the cursor.
+        name: cursor
+        in: query
+      responses:
+        '200':
+          description: Scan list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanListResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Subscription required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service temporarily unavailable. Retry with backoff.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    servers:
+    - url: https://agent-ready.dev
+  /api/v1/scans/{id}:
+    get:
+      operationId: getScan
+      summary: Get a scan
+      description: Returns the full scan including per-check results. Returns 404 if the scan does not exist or is not owned by the API key's user.
+      tags:
+      - Scans
+      parameters:
+      - schema:
+          type: string
+          description: Scan id.
+        required: true
+        description: Scan id.
+        name: id
+        in: path
+      responses:
+        '200':
+          description: Scan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scan'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Subscription required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Scan not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Polling too frequently. Response carries `Retry-After` (seconds) plus `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests permitted in the current window.
+              schema:
+                type: integer
+                example: 10
+            X-RateLimit-Remaining:
+              description: Requests remaining in the current window. `0` on a 429 response.
+              schema:
+                type: integer
+                example: 0
+            Retry-After:
+              description: Seconds until a slot frees in the sliding window (RFC 7231 §7.1.3). Honour this before retrying.
+              schema:
+                type: integer
+                example: 42
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service temporarily unavailable. Retry with backoff.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    servers:
+    - url: https://agent-ready.dev
+  /api/x402/scan:
+    get:
+      operationId: x402ScanChallenge
+      summary: x402 payment challenge for a paid scan
+      description: 'Returns an HTTP 402 payment-requirements challenge for the paid scan resource (x402 v2). This is the discovery/probe surface: it always 402s with the v2 PaymentRequired delivered in the base64 `PAYMENT-REQUIRED` response header (and mirrored in the JSON body) — x402Version 2 + resource + accepts[] + Bazaar discovery extensions. To run a scan, POST to this path with a signed PAYMENT-SIGNATURE (x402 v2) or X-PAYMENT (v1) header.'
+      tags:
+      - Scans
+      security: []
+      responses:
+        '402':
+          description: 'Payment required. The `PAYMENT-REQUIRED` header (and JSON body) carry an x402 v2 PaymentRequired object: { x402Version: 2, resource, accepts: [...] }. Each `accepts` entry uses `amount` (atomic units) and a CAIP-2 `network` (eip155:8453 = Base mainnet). Two tiers — $0.02 USDC (25 pages), $0.25 (250 pages).'
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 PaymentRequired object (HTTP transport spec). Carries the same { x402Version, resource, accepts[], extensions } as the JSON body.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-payment-info:
+        price:
+          mode: dynamic
+          currency: USD
+          min: '0.02'
+          max: '0.25'
+        protocols:
+        - x402: {}
+        - mpp:
+            method: evm
+            intent: charge
+            currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        method: evm
+        intent: charge
+        amount: '20000'
+        currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+    post:
+      operationId: x402Scan
+      summary: Run a scan, paid via x402
+      description: 'Runs an agent-readability scan paid via x402 v2 (no account or subscription). Without a valid `X-PAYMENT` header this returns a v2 402 challenge; sign the EIP-3009 USDC authorization for one of the advertised tiers and resend the v2 payment payload in the `X-PAYMENT` header to run the scan. Settlement is on Base mainnet (CAIP-2 eip155:8453; the facilitator pays gas); the response carries an `X-PAYMENT-RESPONSE` header. Tiers: $0.02 (25 pages), $0.25 (250 pages).'
+      tags:
+      - Scans
+      security: []
+      parameters:
+      - schema:
+          type: string
+          description: Base64-encoded signed x402 payment authorization. Omit it to receive the 402 challenge.
+        required: false
+        description: Base64-encoded signed x402 payment authorization. Omit it to receive the 402 challenge.
+        name: X-PAYMENT
+        in: header
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+              required:
+              - url
+              description: The website URL to scan.
+      responses:
+        '201':
+          description: Payment verified and the scan completed. The `X-PAYMENT-RESPONSE` header carries the settlement.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaidScanResponse'
+        '400':
+          description: Invalid JSON body, URL, or a blocked address.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '402':
+          description: Payment required or verification failed. The `PAYMENT-REQUIRED` header (and JSON body) carry the x402 v2 challenge ({ x402Version, resource, accepts, error }).
+          headers:
+            PAYMENT-REQUIRED:
+              description: Base64-encoded x402 v2 PaymentRequired object (HTTP transport spec). Carries the same { x402Version, resource, accepts[], extensions } as the JSON body.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: The scan failed after payment. Retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-payment-info:
+        price:
+          mode: dynamic
+          currency: USD
+          min: '0.02'
+          max: '0.25'
+        protocols:
+        - x402: {}
+        - mpp:
+            method: evm
+            intent: charge
+            currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        method: evm
+        intent: charge
+        amount: '20000'
+        currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+    servers:
+    - url: https://agent-ready.dev
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: subscription_required
+            message:
+              type: string
+          required:
+          - code
+          - message
+      required:
+      - error
+      description: Structured error envelope.
+    StartScanResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+          - running
+          - completed
+          - failed
+          description: Lifecycle state of a scan. Poll until status is 'completed' or 'failed'.
+        url:
+          type: string
+          format: uri
+        pollUrl:
+          type: string
+      required:
+      - id
+      - status
+      - url
+      - pollUrl
+      description: Async-job acknowledgement returned with 202.
+    StartScanRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          maxLength: 2000
+          format: uri
+          example: https://example.com
+        pageLimit:
+          type: integer
+          minimum: 1
+          maximum: 2000
+      required:
+      - url
+      description: Body for POST /api/v1/scans.
+    Scan:
+      type: object
+      properties:
+        id:
+          type: string
+          example: V1StGXR8_Z
+        rootUrl:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum:
+          - running
+          - completed
+          - failed
+          description: Lifecycle state of a scan. Poll until status is 'completed' or 'failed'.
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        pagesDiscovered:
+          type: integer
+          minimum: 0
+        pagesScanned:
+          type: integer
+          minimum: 0
+        vercelScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        vercelRating:
+          type: string
+          enum:
+          - excellent
+          - good
+          - fair
+          - needs_improvement
+          description: Coarse rating bucket derived from the Vercel Agent Readability score.
+        llmstxtScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        accessibilityScore:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 100
+          description: Accessibility / layout-stability sub-score over the homepage WCAG checks (A-series). Null when no accessibility checks ran. Separate from the Vercel score — accessibility is WCAG, not the Vercel Agent Readability Spec.
+        percentile:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 100
+          description: 'Corpus percentile: share of scanned sites this score beats. Null when the corpus is too small to quote.'
+        corpusTotal:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          description: Number of sites the percentile is measured against. Null with percentile.
+        siteChecks:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckResult'
+        llmstxtChecks:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckResult'
+        pageResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageResult'
+        protocolResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckResult'
+          description: Agent-protocol discovery checks (C-series) plus the accessibility checks (A-series). Populated only for surfaces the site exposes; A-checks run whenever the homepage was fetched. Neither family contributes to the Vercel score.
+        shareToken:
+          type: string
+      required:
+      - id
+      - rootUrl
+      - status
+      - createdAt
+      - completedAt
+      - pagesDiscovered
+      - pagesScanned
+      - vercelScore
+      - vercelRating
+      - llmstxtScore
+      - accessibilityScore
+      - percentile
+      - corpusTotal
+      - siteChecks
+      - llmstxtChecks
+      - pageResults
+      - shareToken
+      description: Full scan result. Same shape returned for sync, async, and cached reads.
+    CheckResult:
+      type: object
+      properties:
+        checkId:
+          type: string
+          example: S1
+        name:
+          type: string
+          example: llms.txt exists
+        status:
+          type: string
+          enum:
+          - pass
+          - fail
+          - warn
+          - error
+          description: Outcome of a single check.
+        message:
+          type: string
+        howToFix:
+          type:
+          - string
+          - 'null'
+        details:
+          type: object
+          additionalProperties: {}
+      required:
+      - checkId
+      - name
+      - status
+      - message
+      - howToFix
+      - details
+      description: Result of a single check.
+    ScanSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        shareToken:
+          type: string
+        domain:
+          type: string
+        rootUrl:
+          type: string
+          format: uri
+        vercelScore:
+          type:
+          - integer
+          - 'null'
+        vercelRating:
+          type:
+          - string
+          - 'null'
+          enum:
+          - excellent
+          - good
+          - fair
+          - needs_improvement
+          - null
+          description: Coarse rating bucket derived from the Vercel Agent Readability score.
+        llmstxtScore:
+          type:
+          - integer
+          - 'null'
+        accessibilityScore:
+          type:
+          - integer
+          - 'null'
+          description: Accessibility sub-score (A-series WCAG checks). Null for scans run before the score was persisted.
+        percentile:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 100
+        corpusTotal:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        pagesScanned:
+          type:
+          - integer
+          - 'null'
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - shareToken
+      - domain
+      - rootUrl
+      - vercelScore
+      - vercelRating
+      - llmstxtScore
+      - accessibilityScore
+      - percentile
+      - corpusTotal
+      - pagesScanned
+      - createdAt
+      description: Lightweight scan listing entry.
+    ScanListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScanSummary'
+        nextCursor:
+          type: string
+      required:
+      - data
+      description: Paginated list of scans owned by the API key.
+    PaidScanResponse:
+      type: object
+      properties:
+        scan:
+          $ref: '#/components/schemas/Scan'
+        shareUrl:
+          type: string
+          example: /scan/V1StGXR8_Z
+        claim:
+          type: string
+          description: Signed token letting the payer claim this scan against an account. Present when claim signing is configured.
+        paymentSettlement:
+          type: string
+          enum:
+          - failed
+          description: Present only when the scan succeeded but on-chain settlement did not. The result is still returned rather than failing a paid caller.
+      required:
+      - scan
+      - shareUrl
+      description: Result of a paid scan (x402 or MPP).
+    PageResult:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckResult'
+      required:
+      - url
+      - checks
+      description: Per-page check results.
+  securitySchemes:
+    ApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: ar_live_<prefix>_<secret>
+      description: API key issued from /dashboard/api-keys. Pro subscription required.
+x-refined-from:
+- agent-ready-dev-openapi.json
+- agent-ready-dev-openapi.yml

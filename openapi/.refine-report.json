@@ -1,0 +1,41 @@
+{
+  "provider": "agent-ready-dev",
+  "sources": [
+    "_original/agent-ready-dev-openapi.json",
+    "agent-ready-dev-openapi.yml",
+    "well-known/agent-ready-dev-mpp.json"
+  ],
+  "outputs": [
+    "agent-ready-dev-mcp-api-openapi.yml",
+    "agent-ready-dev-nlweb-api-openapi.yml",
+    "agent-ready-dev-scans-api-openapi.yml",
+    "agent-ready-dev-x402-api-openapi.yml"
+  ],
+  "archived": [
+    "archived openapi/agent-ready-dev-openapi.yml",
+    "archived well-known/agent-ready-dev-mpp.json"
+  ],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "discovered stray spec: well-known/agent-ready-dev-mpp.json",
+    "agent-ready-dev-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "agent-ready-dev-openapi.json: declared missing tag: MCP",
+    "agent-ready-dev-openapi.json: declared missing tag: NLWeb",
+    "agent-ready-dev-openapi.json: declared missing tag: Scans",
+    "agent-ready-dev-openapi.yml: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "agent-ready-dev-openapi.yml: declared missing tag: MCP",
+    "agent-ready-dev-openapi.yml: declared missing tag: NLWeb",
+    "agent-ready-dev-openapi.yml: declared missing tag: Scans",
+    "agent-ready-dev-mpp.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "agent-ready-dev-mpp.json: tagged paths GET /api/x402/scan -> X402",
+    "agent-ready-dev-mpp.json: tagged paths POST /api/x402/scan -> X402",
+    "agent-ready-dev-mpp.json: declared missing tag: X402",
+    "tag 'MCP' spans 2 source specs (agent-ready-dev-openapi.json, agent-ready-dev-openapi.yml): per-path servers applied",
+    "tag 'NLWeb' spans 2 source specs (agent-ready-dev-openapi.json, agent-ready-dev-openapi.yml): per-path servers applied",
+    "tag 'Scans' spans 2 source specs (agent-ready-dev-openapi.json, agent-ready-dev-openapi.yml): per-path servers applied",
+    "apis.yml register: written (+4 apis, 6 total)"
+  ],
+  "skipped": []
+}

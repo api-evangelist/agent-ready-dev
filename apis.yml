@@ -31,7 +31,7 @@ tags:
 - x402
 - NLWeb
 - Accessibility
-- agent-native
+- Agent-Native
 - Australia
 tags_raw:
 - Agents
@@ -46,55 +46,26 @@ tags_raw:
 - Accessibility
 - Agent-native
 - Australia
+- agent-native
 apis:
-- aid: agent-ready-dev:agent-ready-api
-  name: Agent Ready API
-  description: >-
-    REST API for agent-ready.dev scans, published as OpenAPI 3.1.0 at https://agent-ready.dev/api/v1/openapi.json
-    (servers[] https://agent-ready.dev, info.contact support@agent-ready.dev). Eight operations: start a scan
-    (POST /api/v1/scans, 202 + Location poll URL, optional Idempotency-Key with 24-hour retention), get a scan,
-    list scans (cursor pagination), the public NLWeb /api/v1/ask endpoint (GET and POST, optional SSE
-    streaming), the public POST /api/v1/scan/mcp that grades a live remote MCP server, and the x402/MPP
-    pay-per-scan endpoint at /api/x402/scan (HTTP 402 challenge, USDC on Base). Bearer ar_live_ API keys
-    (Pro plan) on the scans surface; ask, scan/mcp and x402 are key-free.
-  humanURL: https://agent-ready.dev/docs/api
-  image: https://agent-ready.dev/icon-512.png
-  baseURL: https://agent-ready.dev
-  tags:
-  - Agents
-  - Website Scanning
-  - NLWeb
-  - x402
-  properties:
-  - type: OpenAPI
-    url: openapi/agent-ready-dev-openapi.yml
-  - type: OpenAPI
-    name: Agent Ready API OpenAPI 3.1 (provider-hosted)
-    url: https://agent-ready.dev/api/v1/openapi.json
-  - type: Documentation
-    url: https://agent-ready.dev/docs/api
-  - type: APIReference
-    url: https://agent-ready.dev/docs/api/reference
-  - type: GettingStarted
-    url: https://agent-ready.dev/quickstart
-  - type: Overlay
-    url: overlays/agent-ready-dev-openapi-overlay.yaml
-  - type: Examples
-    url: examples/agent-ready-dev-examples.yml
 - aid: agent-ready-dev:agent-ready-mcp-server
   name: Agent Ready MCP Server
   description: >-
-    Hosted Model Context Protocol server at https://agent-ready.dev/api/v1/mcp (Streamable HTTP, POST only,
-    protocol version 2025-06-18, serverInfo agent-ready 1.0.0). initialize, tools/list, resources/list and
-    prompts/list answer anonymously — three tools (scan_site, get_scan, ask) with full inputSchema,
+    Hosted Model Context Protocol server at https://agent-ready.dev/api/v1/mcp (Streamable HTTP, POST
+    only, protocol version 2025-06-18, serverInfo agent-ready 1.0.0). initialize, tools/list, resources/list
+    and prompts/list answer anonymously — three tools (scan_site, get_scan, ask) with full inputSchema,
     outputSchema and readOnlyHint/idempotentHint annotations — while tools/call for scan_site and get_scan
-    needs a Bearer ar_live_ Pro key advertised through RFC 9728 protected-resource metadata. A second no-auth
-    MCP Apps endpoint at /api/apps/mcp (also on mcp.agent-ready.dev) renders a ui:// score-card widget and is
-    the Agent Ready app in the ChatGPT directory. A stdio wrapper ships on npm as agent-ready-mcp.
+    needs a Bearer ar_live_ Pro key advertised through RFC 9728 protected-resource metadata. A second
+    no-auth MCP Apps endpoint at /api/apps/mcp (also on mcp.agent-ready.dev) renders a ui:// score-card
+    widget and is the Agent Ready app in the ChatGPT directory. A stdio wrapper ships on npm as agent-ready-mcp.
   humanURL: https://agent-ready.dev/mcp
   image: https://agent-ready.dev/icon-512.png
   baseURL: https://agent-ready.dev/api/v1/mcp
   tags:
+  - MCP
+  - Agent-Native
+  - Agents
+  tags_raw:
   - MCP
   - agent-native
   - Agents
@@ -116,13 +87,17 @@ apis:
   description: >-
     Agent2Agent (A2A) surface: a signed agent card served from https://agent-ready.dev/.well-known/agent-card.json
     (protocolVersion 1.0, JSONRPC, version 1.0.0, ES256 JWS signature with keys at /.well-known/jwks.json)
-    declaring three skills — scan_site, get_scan and the public ask — at the JSON-RPC endpoint
-    https://agent-ready.dev/api/v1/a2a. Bearer ar_live_ Pro key for scan_site and tasks/get; ask is public.
-    Streaming and push notifications are declared unsupported.
+    declaring three skills — scan_site, get_scan and the public ask — at the JSON-RPC endpoint https://agent-ready.dev/api/v1/a2a.
+    Bearer ar_live_ Pro key for scan_site and tasks/get; ask is public. Streaming and push notifications
+    are declared unsupported.
   humanURL: https://agent-ready.dev/docs/api
   image: https://agent-ready.dev/icon-512.png
   baseURL: https://agent-ready.dev/api/v1/a2a
   tags:
+  - A2A
+  - Agent-Native
+  - Agents
+  tags_raw:
   - A2A
   - agent-native
   - Agents
@@ -132,12 +107,86 @@ apis:
   - type: AgentCard
     name: A2A Agent Card (provider-hosted)
     url: https://agent-ready.dev/.well-known/agent-card.json
+- aid: agent-ready-dev:agent-ready-dev-mcp-api
+  name: Agent Ready MCP API
+  description: The MCP API from Agent Ready — 1 operation(s) for mcp.
+  humanURL: https://agent-ready.dev/docs/api
+  baseURL: https://agent-ready.dev/api/v1/mcp
+  tags:
+  - MCP
+  properties:
+  - type: OpenAPI
+    url: openapi/agent-ready-dev-mcp-api-openapi.yml
+  - type: Documentation
+    url: https://agent-ready.dev/docs/api
+  - type: APIReference
+    url: https://agent-ready.dev/docs/api/reference
+  - type: GettingStarted
+    url: https://agent-ready.dev/quickstart
+  - type: Examples
+    url: examples/agent-ready-dev-examples.yml
+- aid: agent-ready-dev:agent-ready-dev-nlweb-api
+  name: Agent Ready NL Web API
+  description: The NLWeb API from Agent Ready — 1 operation(s) for nlweb.
+  humanURL: https://agent-ready.dev/docs/api
+  baseURL: https://agent-ready.dev/api/v1/mcp
+  tags:
+  - NLWeb
+  properties:
+  - type: OpenAPI
+    url: openapi/agent-ready-dev-nlweb-api-openapi.yml
+  - type: Documentation
+    url: https://agent-ready.dev/docs/api
+  - type: APIReference
+    url: https://agent-ready.dev/docs/api/reference
+  - type: GettingStarted
+    url: https://agent-ready.dev/quickstart
+  - type: Examples
+    url: examples/agent-ready-dev-examples.yml
+- aid: agent-ready-dev:agent-ready-dev-scans-api
+  name: Agent Ready Scans API
+  description: The Scans API from Agent Ready — 3 operation(s) for scans.
+  humanURL: https://agent-ready.dev/docs/api
+  baseURL: https://agent-ready.dev/api/v1/mcp
+  tags:
+  - Scans
+  properties:
+  - type: OpenAPI
+    url: openapi/agent-ready-dev-scans-api-openapi.yml
+  - type: Documentation
+    url: https://agent-ready.dev/docs/api
+  - type: APIReference
+    url: https://agent-ready.dev/docs/api/reference
+  - type: GettingStarted
+    url: https://agent-ready.dev/quickstart
+  - type: Examples
+    url: examples/agent-ready-dev-examples.yml
+- aid: agent-ready-dev:agent-ready-dev-x402-api
+  name: Agent Ready X402 API
+  description: The X402 API from Agent Ready — 1 operation(s) for x402.
+  humanURL: https://agent-ready.dev/docs/api
+  baseURL: https://agent-ready.dev/api/v1/mcp
+  tags:
+  - X402
+  properties:
+  - type: OpenAPI
+    url: openapi/agent-ready-dev-x402-api-openapi.yml
+  - type: Documentation
+    url: https://agent-ready.dev/docs/api
+  - type: APIReference
+    url: https://agent-ready.dev/docs/api/reference
+  - type: GettingStarted
+    url: https://agent-ready.dev/quickstart
+  - type: Examples
+    url: examples/agent-ready-dev-examples.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: Overlay
+  url: overlays/agent-ready-dev-openapi-overlay.yaml
 - type: AgenticAccess
   url: agentic-access/agent-ready-dev-agentic-access.yml
 - type: Website
@@ -231,3 +280,10 @@ x-enrichment:
   status: enriched
   artifacts_added: 36
   pass: local-v3
+x-a2a:
+  verified: true
+  probed: '2026-09-26'
+  url: "https://agent-ready.dev/.well-known/agent-card.json"
+  grade: "conformant"
+  protocol_version: "1.0"
+  control: 404

@@ -1,0 +1,230 @@
+openapi: 3.2.0
+info:
+  title: Agent Ready Dev MCP API
+  version: 1.0.0
+  contact:
+    name: Agent Ready
+    url: https://agent-ready.dev/about#contact
+    email: support@agent-ready.dev
+  x-guidance: 'Scan any public website for AI agent-readability. POST /api/x402/scan with a JSON body {"url":"https://…"} and pay per scan with no account via x402 (X-PAYMENT header) or MPP (Authorization: Payment) — $0.02 for up to 25 pages, $0.25 for up to 250, USDC on Base mainnet. The same scan is available free under quota at POST /api/scan, or with an API key for Pro subscribers. Read-only; only public URLs are scanned.'
+  description: 'Operations tagged MCP across 2 of this provider''s published API definitions: agent-ready-dev-openapi.json, agent-ready-dev-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://agent-ready.dev
+security:
+- ApiKey: []
+tags:
+- name: MCP
+paths:
+  /api/v1/scan/mcp:
+    post:
+      operationId: scanMcp
+      summary: Scan a live MCP server
+      description: 'Connects to a remote MCP endpoint over Streamable HTTP, runs the handshake, and grades the tools, resources, and prompts it advertises against MCP best practices. Returns a weighted mcpScore (0–100) with per-check findings. Synchronous (no polling). Public — no API key required. Remote http(s) endpoints only; stdio servers aren''t reachable. This is a standalone tool: its score is independent of the site agent-readability score.'
+      tags:
+      - MCP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/McpScanRequest'
+      responses:
+        '201':
+          description: The MCP server scan result and its shareable report URL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpScanResponse'
+        '400':
+          description: Invalid or blocked endpoint (bad URL, non-http(s), or a private/reserved address).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded. Response carries `Retry-After` (seconds). Back off with exponential delay + jitter.
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests permitted in the current window.
+              schema:
+                type: integer
+                example: 10
+            X-RateLimit-Remaining:
+              description: Requests remaining in the current window. `0` on a 429 response.
+              schema:
+                type: integer
+                example: 0
+            Retry-After:
+              description: Seconds until a slot frees in the sliding window (RFC 7231 §7.1.3). Honour this before retrying.
+              schema:
+                type: integer
+                example: 42
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: The MCP server could not be scanned. Retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    servers:
+    - url: https://agent-ready.dev
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: subscription_required
+            message:
+              type: string
+          required:
+          - code
+          - message
+      required:
+      - error
+      description: Structured error envelope.
+    CheckResult:
+      type: object
+      properties:
+        checkId:
+          type: string
+          example: S1
+        name:
+          type: string
+          example: llms.txt exists
+        status:
+          type: string
+          enum:
+          - pass
+          - fail
+          - warn
+          - error
+          description: Outcome of a single check.
+        message:
+          type: string
+        howToFix:
+          type:
+          - string
+          - 'null'
+        details:
+          type: object
+          additionalProperties: {}
+      required:
+      - checkId
+      - name
+      - status
+      - message
+      - howToFix
+      - details
+      description: Result of a single check.
+    McpScanResponse:
+      type: object
+      properties:
+        scan:
+          $ref: '#/components/schemas/McpScan'
+        shareUrl:
+          type: string
+          example: /mcp-server-scanner/bUqzgS67CE
+      required:
+      - scan
+      - shareUrl
+      description: Result of POST /api/v1/scan/mcp.
+    McpScan:
+      type: object
+      properties:
+        id:
+          type: string
+          example: bUqzgS67CE
+        shareToken:
+          type: string
+        endpoint:
+          type: string
+          format: uri
+          example: https://mcp.example.com/mcp
+        host:
+          type: string
+          example: mcp.example.com
+        status:
+          type: string
+          enum:
+          - completed
+          - failed
+        mcpScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        mcpRating:
+          type: string
+          enum:
+          - excellent
+          - good
+          - fair
+          - needs_improvement
+          description: Coarse rating bucket derived from the Vercel Agent Readability score.
+        serverName:
+          type:
+          - string
+          - 'null'
+        serverVersion:
+          type:
+          - string
+          - 'null'
+        toolCount:
+          type:
+          - integer
+          - 'null'
+        resourceCount:
+          type:
+          - integer
+          - 'null'
+        promptCount:
+          type:
+          - integer
+          - 'null'
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckResult'
+      required:
+      - id
+      - shareToken
+      - endpoint
+      - host
+      - status
+      - mcpScore
+      - mcpRating
+      - serverName
+      - serverVersion
+      - toolCount
+      - resourceCount
+      - promptCount
+      - checks
+      description: 'Full MCP server scan result: the M-series checks plus a weighted mcpScore (0–100). Independent of the site Vercel score.'
+    McpScanRequest:
+      type: object
+      properties:
+        endpoint:
+          type: string
+          maxLength: 2000
+          format: uri
+          example: https://mcp.example.com/mcp
+      required:
+      - endpoint
+      description: Body for POST /api/v1/scan/mcp. A remote http(s) MCP endpoint (Streamable HTTP).
+  securitySchemes:
+    ApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: ar_live_<prefix>_<secret>
+      description: API key issued from /dashboard/api-keys. Pro subscription required.
+x-refined-from:
+- agent-ready-dev-openapi.json
+- agent-ready-dev-openapi.yml

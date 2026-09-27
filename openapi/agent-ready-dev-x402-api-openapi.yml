@@ -1,0 +1,61 @@
+openapi: 3.2.0
+info:
+  title: Agent Ready — MPP payable resources X402 API
+  version: 1.0.0
+tags:
+- name: X402
+paths:
+  /api/x402/scan:
+    get:
+      summary: MPP payment challenge for a paid Agent Ready scan
+      x-payment-info:
+        price:
+          mode: dynamic
+          currency: USD
+          min: '0.02'
+          max: '0.25'
+        protocols:
+        - x402: {}
+        - mpp:
+            method: evm
+            intent: charge
+            currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        method: evm
+        intent: charge
+        amount: '20000'
+        currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+      tags:
+      - X402
+      operationId: getApiX402Scan
+      x-operation-id-source: derived
+    post:
+      summary: Run an Agent Ready website agent-readiness scan (paid)
+      x-payment-info:
+        price:
+          mode: dynamic
+          currency: USD
+          min: '0.02'
+          max: '0.25'
+        protocols:
+        - x402: {}
+        - mpp:
+            method: evm
+            intent: charge
+            currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        method: evm
+        intent: charge
+        amount: '20000'
+        currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+      tags:
+      - X402
+      operationId: postApiX402Scan
+      x-operation-id-source: derived
+x-service-info:
+  categories:
+  - ai-agents
+  - developer-tools
+  - web
+  docs:
+    homepage: https://agent-ready.dev
+    apiReference: https://agent-ready.dev/api
+    llms: https://agent-ready.dev/llms.txt
