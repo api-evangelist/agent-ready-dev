@@ -161,24 +161,6 @@ apis:
     url: https://agent-ready.dev/quickstart
   - type: Examples
     url: examples/agent-ready-dev-examples.yml
-- aid: agent-ready-dev:agent-ready-dev-x402-api
-  name: Agent Ready X402 API
-  description: The X402 API from Agent Ready — 1 operation(s) for x402.
-  humanURL: https://agent-ready.dev/docs/api
-  baseURL: https://agent-ready.dev/api/v1/mcp
-  tags:
-  - X402
-  properties:
-  - type: OpenAPI
-    url: openapi/agent-ready-dev-x402-api-openapi.yml
-  - type: Documentation
-    url: https://agent-ready.dev/docs/api
-  - type: APIReference
-    url: https://agent-ready.dev/docs/api/reference
-  - type: GettingStarted
-    url: https://agent-ready.dev/quickstart
-  - type: Examples
-    url: examples/agent-ready-dev-examples.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com

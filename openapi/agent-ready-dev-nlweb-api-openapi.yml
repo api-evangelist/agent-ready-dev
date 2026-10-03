@@ -1,13 +1,13 @@
 openapi: 3.2.0
 info:
-  title: Agent Ready Dev NL Web API
+  title: Agent Ready NL Web API
   version: 1.0.0
   contact:
     name: Agent Ready
     url: https://agent-ready.dev/about#contact
     email: support@agent-ready.dev
+  description: Programmatic access to agent-ready.dev scans.
   x-guidance: 'Scan any public website for AI agent-readability. POST /api/x402/scan with a JSON body {"url":"https://…"} and pay per scan with no account via x402 (X-PAYMENT header) or MPP (Authorization: Payment) — $0.02 for up to 25 pages, $0.25 for up to 250, USDC on Base mainnet. The same scan is available free under quota at POST /api/scan, or with an API key for Pro subscribers. Read-only; only public URLs are scanned.'
-  description: 'Operations tagged NLWeb across 2 of this provider''s published API definitions: agent-ready-dev-openapi.json, agent-ready-dev-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://agent-ready.dev
 security:
@@ -171,51 +171,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-    servers:
-    - url: https://agent-ready.dev
 components:
   schemas:
-    Error:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: subscription_required
-            message:
-              type: string
-          required:
-          - code
-          - message
-      required:
-      - error
-      description: Structured error envelope.
-    AskResult:
-      type: object
-      properties:
-        url:
-          type: string
-        name:
-          type: string
-        site:
-          type: string
-        score:
-          type: number
-          description: Relevance score (BM25).
-        description:
-          type: string
-        schema_object:
-          $ref: '#/components/schemas/SchemaObject'
-      required:
-      - url
-      - name
-      - site
-      - score
-      - description
-      - schema_object
-      description: An NLWeb result object.
     AskMeta:
       type: object
       properties:
@@ -240,92 +197,47 @@ components:
       - version
       - mode
       description: NLWeb response envelope metadata.
-    AskAnswer:
+    AskResult:
       type: object
       properties:
-        _meta:
-          $ref: '#/components/schemas/AskMeta'
-        query_id:
+        url:
+          type: string
+        name:
           type: string
         site:
           type: string
-        mode:
+        score:
+          type: number
+          description: Relevance score (BM25).
+        description:
           type: string
-          enum:
-          - list
-          - summarize
-        query:
-          type: string
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/AskResult'
-        summary:
-          type: string
-          description: Present when mode is 'summarize'.
+        schema_object:
+          $ref: '#/components/schemas/SchemaObject'
       required:
-      - _meta
-      - query_id
+      - url
+      - name
       - site
-      - mode
-      - query
-      - results
-      description: Successful NLWeb answer.
-    AskResponse:
-      anyOf:
-      - $ref: '#/components/schemas/AskAnswer'
-      - $ref: '#/components/schemas/AskFailure'
-      description: Either an answer or a failure.
-    AskFailure:
+      - score
+      - description
+      - schema_object
+      description: An NLWeb result object.
+    Error:
       type: object
       properties:
-        _meta:
-          $ref: '#/components/schemas/AskMeta'
         error:
           type: object
           properties:
             code:
               type: string
-              enum:
-              - NO_RESULTS
-              - INVALID_QUERY
-              - RATE_LIMITED
-              - TIMEOUT
-              - INTERNAL
+              example: subscription_required
             message:
               type: string
           required:
           - code
           - message
       required:
-      - _meta
       - error
-      description: NLWeb failure envelope.
-    SchemaObject:
-      type: object
-      properties:
-        '@context':
-          type: string
-          enum:
-          - https://schema.org
-        '@type':
-          type: string
-          enum:
-          - Article
-          - TechArticle
-          - WebPage
-        name:
-          type: string
-        url:
-          type: string
-        description:
-          type: string
-      required:
-      - '@context'
-      - '@type'
-      - name
-      - url
-      description: Schema.org JSON-LD for a result.
+      description: Structured error envelope.
     AskRequest:
       type: object
       properties:
@@ -454,12 +366,95 @@ components:
       required:
       - query
       description: 'NLWeb /ask request. The spec shape is `{ query: { text } }`; the legacy string and `{ query: { q } }` forms plus a `prefer` envelope are also accepted.'
+    SchemaObject:
+      type: object
+      properties:
+        '@context':
+          type: string
+          enum:
+          - https://schema.org
+        '@type':
+          type: string
+          enum:
+          - Article
+          - TechArticle
+          - WebPage
+        name:
+          type: string
+        url:
+          type: string
+        description:
+          type: string
+      required:
+      - '@context'
+      - '@type'
+      - name
+      - url
+      description: Schema.org JSON-LD for a result.
+    AskAnswer:
+      type: object
+      properties:
+        _meta:
+          $ref: '#/components/schemas/AskMeta'
+        query_id:
+          type: string
+        site:
+          type: string
+        mode:
+          type: string
+          enum:
+          - list
+          - summarize
+        query:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AskResult'
+        summary:
+          type: string
+          description: Present when mode is 'summarize'.
+      required:
+      - _meta
+      - query_id
+      - site
+      - mode
+      - query
+      - results
+      description: Successful NLWeb answer.
+    AskFailure:
+      type: object
+      properties:
+        _meta:
+          $ref: '#/components/schemas/AskMeta'
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+              - NO_RESULTS
+              - INVALID_QUERY
+              - RATE_LIMITED
+              - TIMEOUT
+              - INTERNAL
+            message:
+              type: string
+          required:
+          - code
+          - message
+      required:
+      - _meta
+      - error
+      description: NLWeb failure envelope.
+    AskResponse:
+      anyOf:
+      - $ref: '#/components/schemas/AskAnswer'
+      - $ref: '#/components/schemas/AskFailure'
+      description: Either an answer or a failure.
   securitySchemes:
     ApiKey:
       type: http
       scheme: bearer
       bearerFormat: ar_live_<prefix>_<secret>
       description: API key issued from /dashboard/api-keys. Pro subscription required.
-x-refined-from:
-- agent-ready-dev-openapi.json
-- agent-ready-dev-openapi.yml
