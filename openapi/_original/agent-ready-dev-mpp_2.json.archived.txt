@@ -1,0 +1,2 @@
+# x-archived-from: ../well-known/agent-ready-dev-mpp.json
+# x-archived-on: 2026-10-04

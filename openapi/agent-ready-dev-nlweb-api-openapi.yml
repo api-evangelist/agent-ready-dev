@@ -173,71 +173,6 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    AskMeta:
-      type: object
-      properties:
-        response_type:
-          type: string
-          enum:
-          - answer
-          - failure
-          - elicitation
-          - promise
-        version:
-          type: string
-          enum:
-          - '0.55'
-        mode:
-          type: string
-          enum:
-          - list
-          - summarize
-      required:
-      - response_type
-      - version
-      - mode
-      description: NLWeb response envelope metadata.
-    AskResult:
-      type: object
-      properties:
-        url:
-          type: string
-        name:
-          type: string
-        site:
-          type: string
-        score:
-          type: number
-          description: Relevance score (BM25).
-        description:
-          type: string
-        schema_object:
-          $ref: '#/components/schemas/SchemaObject'
-      required:
-      - url
-      - name
-      - site
-      - score
-      - description
-      - schema_object
-      description: An NLWeb result object.
-    Error:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: subscription_required
-            message:
-              type: string
-          required:
-          - code
-          - message
-      required:
-      - error
-      description: Structured error envelope.
     AskRequest:
       type: object
       properties:
@@ -366,6 +301,28 @@ components:
       required:
       - query
       description: 'NLWeb /ask request. The spec shape is `{ query: { text } }`; the legacy string and `{ query: { q } }` forms plus a `prefer` envelope are also accepted.'
+    AskResponse:
+      anyOf:
+      - $ref: '#/components/schemas/AskAnswer'
+      - $ref: '#/components/schemas/AskFailure'
+      description: Either an answer or a failure.
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: subscription_required
+            message:
+              type: string
+          required:
+          - code
+          - message
+      required:
+      - error
+      description: Structured error envelope.
     SchemaObject:
       type: object
       properties:
@@ -391,6 +348,54 @@ components:
       - name
       - url
       description: Schema.org JSON-LD for a result.
+    AskResult:
+      type: object
+      properties:
+        url:
+          type: string
+        name:
+          type: string
+        site:
+          type: string
+        score:
+          type: number
+          description: Relevance score (BM25).
+        description:
+          type: string
+        schema_object:
+          $ref: '#/components/schemas/SchemaObject'
+      required:
+      - url
+      - name
+      - site
+      - score
+      - description
+      - schema_object
+      description: An NLWeb result object.
+    AskMeta:
+      type: object
+      properties:
+        response_type:
+          type: string
+          enum:
+          - answer
+          - failure
+          - elicitation
+          - promise
+        version:
+          type: string
+          enum:
+          - '0.55'
+        mode:
+          type: string
+          enum:
+          - list
+          - summarize
+      required:
+      - response_type
+      - version
+      - mode
+      description: NLWeb response envelope metadata.
     AskAnswer:
       type: object
       properties:
@@ -447,11 +452,6 @@ components:
       - _meta
       - error
       description: NLWeb failure envelope.
-    AskResponse:
-      anyOf:
-      - $ref: '#/components/schemas/AskAnswer'
-      - $ref: '#/components/schemas/AskFailure'
-      description: Either an answer or a failure.
   securitySchemes:
     ApiKey:
       type: http

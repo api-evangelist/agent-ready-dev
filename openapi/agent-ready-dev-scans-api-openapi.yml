@@ -369,6 +369,23 @@ paths:
         currency: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
 components:
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: subscription_required
+            message:
+              type: string
+          required:
+          - code
+          - message
+      required:
+      - error
+      description: Structured error envelope.
     Scan:
       type: object
       properties:
@@ -473,129 +490,6 @@ components:
       - pageResults
       - shareToken
       description: Full scan result. Same shape returned for sync, async, and cached reads.
-    PaidScanResponse:
-      type: object
-      properties:
-        scan:
-          $ref: '#/components/schemas/Scan'
-        shareUrl:
-          type: string
-          example: /scan/V1StGXR8_Z
-        claim:
-          type: string
-          description: Signed token letting the payer claim this scan against an account. Present when claim signing is configured.
-        paymentSettlement:
-          type: string
-          enum:
-          - failed
-          description: Present only when the scan succeeded but on-chain settlement did not. The result is still returned rather than failing a paid caller.
-      required:
-      - scan
-      - shareUrl
-      description: Result of a paid scan (x402 or MPP).
-    StartScanRequest:
-      type: object
-      properties:
-        url:
-          type: string
-          maxLength: 2000
-          format: uri
-          example: https://example.com
-        pageLimit:
-          type: integer
-          minimum: 1
-          maximum: 2000
-      required:
-      - url
-      description: Body for POST /api/v1/scans.
-    StartScanResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        status:
-          type: string
-          enum:
-          - running
-          - completed
-          - failed
-          description: Lifecycle state of a scan. Poll until status is 'completed' or 'failed'.
-        url:
-          type: string
-          format: uri
-        pollUrl:
-          type: string
-      required:
-      - id
-      - status
-      - url
-      - pollUrl
-      description: Async-job acknowledgement returned with 202.
-    CheckResult:
-      type: object
-      properties:
-        checkId:
-          type: string
-          example: S1
-        name:
-          type: string
-          example: llms.txt exists
-        status:
-          type: string
-          enum:
-          - pass
-          - fail
-          - warn
-          - error
-          description: Outcome of a single check.
-        message:
-          type: string
-        howToFix:
-          type:
-          - string
-          - 'null'
-        details:
-          type: object
-          additionalProperties: {}
-      required:
-      - checkId
-      - name
-      - status
-      - message
-      - howToFix
-      - details
-      description: Result of a single check.
-    Error:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: subscription_required
-            message:
-              type: string
-          required:
-          - code
-          - message
-      required:
-      - error
-      description: Structured error envelope.
-    PageResult:
-      type: object
-      properties:
-        url:
-          type: string
-          format: uri
-        checks:
-          type: array
-          items:
-            $ref: '#/components/schemas/CheckResult'
-      required:
-      - url
-      - checks
-      description: Per-page check results.
     ScanSummary:
       type: object
       properties:
@@ -664,6 +558,55 @@ components:
       - pagesScanned
       - createdAt
       description: Lightweight scan listing entry.
+    CheckResult:
+      type: object
+      properties:
+        checkId:
+          type: string
+          example: S1
+        name:
+          type: string
+          example: llms.txt exists
+        status:
+          type: string
+          enum:
+          - pass
+          - fail
+          - warn
+          - error
+          description: Outcome of a single check.
+        message:
+          type: string
+        howToFix:
+          type:
+          - string
+          - 'null'
+        details:
+          type: object
+          additionalProperties: {}
+      required:
+      - checkId
+      - name
+      - status
+      - message
+      - howToFix
+      - details
+      description: Result of a single check.
+    StartScanRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          maxLength: 2000
+          format: uri
+          example: https://example.com
+        pageLimit:
+          type: integer
+          minimum: 1
+          maximum: 2000
+      required:
+      - url
+      description: Body for POST /api/v1/scans.
     ScanListResponse:
       type: object
       properties:
@@ -676,6 +619,63 @@ components:
       required:
       - data
       description: Paginated list of scans owned by the API key.
+    PageResult:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckResult'
+      required:
+      - url
+      - checks
+      description: Per-page check results.
+    StartScanResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+          - running
+          - completed
+          - failed
+          description: Lifecycle state of a scan. Poll until status is 'completed' or 'failed'.
+        url:
+          type: string
+          format: uri
+        pollUrl:
+          type: string
+      required:
+      - id
+      - status
+      - url
+      - pollUrl
+      description: Async-job acknowledgement returned with 202.
+    PaidScanResponse:
+      type: object
+      properties:
+        scan:
+          $ref: '#/components/schemas/Scan'
+        shareUrl:
+          type: string
+          example: /scan/V1StGXR8_Z
+        claim:
+          type: string
+          description: Signed token letting the payer claim this scan against an account. Present when claim signing is configured.
+        paymentSettlement:
+          type: string
+          enum:
+          - failed
+          description: Present only when the scan succeeded but on-chain settlement did not. The result is still returned rather than failing a paid caller.
+      required:
+      - scan
+      - shareUrl
+      description: Result of a paid scan (x402 or MPP).
   securitySchemes:
     ApiKey:
       type: http

@@ -1,34 +1,39 @@
 {
   "provider": "agent-ready-dev",
   "sources": [
-    "_original/agent-ready-dev-openapi.json"
+    "_original/agent-ready-dev-openapi.json",
+    "well-known/agent-ready-dev-mpp.json"
   ],
   "outputs": [
     "agent-ready-dev-mcp-api-openapi.yml",
     "agent-ready-dev-nlweb-api-openapi.yml",
-    "agent-ready-dev-scans-api-openapi.yml"
+    "agent-ready-dev-scans-api-openapi.yml",
+    "agent-ready-dev-x402-api-openapi.yml"
   ],
   "archived": [
-    "deleted 1 superseded output(s) from the previous generation"
+    "archived well-known/agent-ready-dev-mpp.json"
   ],
   "errors": [],
   "warnings": [],
   "notes": [
     "2 archived document(s) dropped as subsets of other archived documents",
     "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "discovered stray spec: well-known/agent-ready-dev-mpp.json",
     "agent-ready-dev-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
     "agent-ready-dev-openapi.json: declared missing tag: MCP",
     "agent-ready-dev-openapi.json: declared missing tag: NLWeb",
     "agent-ready-dev-openapi.json: declared missing tag: Scans",
-    "superseded outputs removed: agent-ready-dev-x402-api-openapi.yml",
-    "apis.yml register: written (+0 apis, 5 total)"
+    "agent-ready-dev-mpp.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "agent-ready-dev-mpp.json: tagged paths GET /api/x402/scan -> X402",
+    "agent-ready-dev-mpp.json: tagged paths POST /api/x402/scan -> X402",
+    "agent-ready-dev-mpp.json: declared missing tag: X402",
+    "apis.yml register: written (+1 apis, 6 total)"
   ],
   "skipped": [
     "_original/agent-ready-dev-openapi.yml: archived document superseded by a larger archived document",
     "_original/agent-ready-dev-mpp.json: archived document superseded by a larger archived document",
     "agent-ready-dev-mcp-api-openapi.yml: previously refined output, superseded by openapi/_original/",
     "agent-ready-dev-nlweb-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "agent-ready-dev-scans-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "agent-ready-dev-x402-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+    "agent-ready-dev-scans-api-openapi.yml: previously refined output, superseded by openapi/_original/"
   ]
 }

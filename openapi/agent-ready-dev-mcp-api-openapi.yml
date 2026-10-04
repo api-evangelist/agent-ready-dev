@@ -84,68 +84,6 @@ components:
       - scan
       - shareUrl
       description: Result of POST /api/v1/scan/mcp.
-    CheckResult:
-      type: object
-      properties:
-        checkId:
-          type: string
-          example: S1
-        name:
-          type: string
-          example: llms.txt exists
-        status:
-          type: string
-          enum:
-          - pass
-          - fail
-          - warn
-          - error
-          description: Outcome of a single check.
-        message:
-          type: string
-        howToFix:
-          type:
-          - string
-          - 'null'
-        details:
-          type: object
-          additionalProperties: {}
-      required:
-      - checkId
-      - name
-      - status
-      - message
-      - howToFix
-      - details
-      description: Result of a single check.
-    Error:
-      type: object
-      properties:
-        error:
-          type: object
-          properties:
-            code:
-              type: string
-              example: subscription_required
-            message:
-              type: string
-          required:
-          - code
-          - message
-      required:
-      - error
-      description: Structured error envelope.
-    McpScanRequest:
-      type: object
-      properties:
-        endpoint:
-          type: string
-          maxLength: 2000
-          format: uri
-          example: https://mcp.example.com/mcp
-      required:
-      - endpoint
-      description: Body for POST /api/v1/scan/mcp. A remote http(s) MCP endpoint (Streamable HTTP).
     McpScan:
       type: object
       properties:
@@ -217,6 +155,68 @@ components:
       - promptCount
       - checks
       description: 'Full MCP server scan result: the M-series checks plus a weighted mcpScore (0–100). Independent of the site Vercel score.'
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: subscription_required
+            message:
+              type: string
+          required:
+          - code
+          - message
+      required:
+      - error
+      description: Structured error envelope.
+    CheckResult:
+      type: object
+      properties:
+        checkId:
+          type: string
+          example: S1
+        name:
+          type: string
+          example: llms.txt exists
+        status:
+          type: string
+          enum:
+          - pass
+          - fail
+          - warn
+          - error
+          description: Outcome of a single check.
+        message:
+          type: string
+        howToFix:
+          type:
+          - string
+          - 'null'
+        details:
+          type: object
+          additionalProperties: {}
+      required:
+      - checkId
+      - name
+      - status
+      - message
+      - howToFix
+      - details
+      description: Result of a single check.
+    McpScanRequest:
+      type: object
+      properties:
+        endpoint:
+          type: string
+          maxLength: 2000
+          format: uri
+          example: https://mcp.example.com/mcp
+      required:
+      - endpoint
+      description: Body for POST /api/v1/scan/mcp. A remote http(s) MCP endpoint (Streamable HTTP).
   securitySchemes:
     ApiKey:
       type: http
