@@ -83,3 +83,29 @@ refunds: 'Terms §4: charges believed to be in error can be raised by email with
 related:
   rate_limits: rate-limits/agent-ready-dev-rate-limits.yml
   conventions: conventions/agent-ready-dev-conventions.yml
+x-canonical:
+  generated: '2026-10-08'
+  vocabulary: all/0-working/economics/plans-canonical.yml
+  models:
+  - free
+  - subscription
+  units: []
+  plans:
+  - name: Free
+    access: other
+    model: free
+    model_how: derived
+    units: []
+    periods: []
+  - name: Pro
+    access: other
+    model: subscription
+    model_how: derived
+    units: []
+    periods: []
+  - name: Pay-per-scan (x402 / MPP)
+    access: other
+    model: unstated
+    model_how: derived
+    units: []
+    periods: []
