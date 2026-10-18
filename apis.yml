@@ -167,6 +167,8 @@ apis:
   humanURL: https://agent-ready.dev/mcp
   baseURL: https://agent-ready.dev/api/v1/mcp
   tags:
+  - x402
+  tags_raw:
   - X402
   properties:
   - type: OpenAPI
