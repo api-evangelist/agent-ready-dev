@@ -42,7 +42,13 @@ artifacts:
   front-door-ai/2026-09-17.yml:
     method: unknown
     evidence: no authorship recorded
-  kin/checks-2026-09-24T161608.yml:
+  integrations/_index.yml:
+    method: generated
+    evidence: carries an API Evangelist house phrase
+  integrations/agent-ready-dev-integration-edges.yml:
+    method: unknown
+    evidence: no authorship recorded
+  kin/checks-2026-10-11T110117.yml:
     method: generated
     evidence: Kin Score snapshot written by score.rb
   kin/score-2026-09-19T193153.yml:
@@ -75,6 +81,21 @@ artifacts:
   kin/score-2026-09-24T161608.yml:
     method: generated
     evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-09-25T210408.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-09-25T232841.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-10-03T000835.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-10-03T024842.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
+  kin/score-2026-10-11T110117.yml:
+    method: generated
+    evidence: Kin Score snapshot written by score.rb
   lifecycle/agent-ready-dev-lifecycle.yml:
     method: searched
     evidence: declared in the artifact
@@ -93,16 +114,36 @@ artifacts:
   mcp/agent-ready-dev-tool-crosswalk.yml:
     method: derived
     evidence: declared in the artifact
-  openapi/_original/agent-ready-dev-openapi.json:
+  openapi/_original/agent-ready-dev-mpp.json:
     method: harvested
     evidence: found in openapi/_original/; the fetch URL and bytes were not recorded, so byte-identity
       to the provider's source is unverified
-  openapi/agent-ready-dev-openapi.yml:
+  openapi/_original/agent-ready-dev-mpp_2.json:
+    method: harvested
+    evidence: found in openapi/_original/; the fetch URL and bytes were not recorded, so byte-identity
+      to the provider's source is unverified
+  openapi/_original/agent-ready-dev-openapi.json:
+    method: harvested
+    evidence: byte-identical to https://agent-ready.dev/openapi.json (sha256 0e68a28ce359, fetched 2026-10-04)
+  openapi/_original/agent-ready-dev-openapi.yml:
+    method: harvested
+    evidence: the same operations as https://agent-ready.dev/openapi.json (sha256 0e68a28ce359, fetched
+      2026-10-04)
+  openapi/agent-ready-dev-mcp-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/agent-ready-dev-nlweb-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/agent-ready-dev-scans-api-openapi.yml:
+    method: derived
+    evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
+  openapi/agent-ready-dev-x402-api-openapi.yml:
     method: derived
     evidence: paths are a subset of openapi/_original/ (split from the harvested spec)
   overlays/agent-ready-dev-openapi-overlay.yaml:
-    method: unknown
-    evidence: no authorship recorded
+    method: derived
+    evidence: an API Evangelist overlay (title) over the provider's contract
   packages/agent-ready-dev-packages.yml:
     method: searched
     evidence: declared in the artifact
@@ -173,9 +214,6 @@ artifacts:
     method: unknown
     evidence: no authorship recorded
   well-known/agent-ready-dev-mcp-server-card.json:
-    method: unknown
-    evidence: no authorship recorded
-  well-known/agent-ready-dev-mpp.json:
     method: unknown
     evidence: no authorship recorded
   well-known/agent-ready-dev-oauth-authorization-server.json:

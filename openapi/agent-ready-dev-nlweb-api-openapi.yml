@@ -458,3 +458,9 @@ components:
       scheme: bearer
       bearerFormat: ar_live_<prefix>_<secret>
       description: API key issued from /dashboard/api-keys. Pro subscription required.
+x-provenance:
+  method: harvested
+  publisher: Agent Ready
+  source: https://agent-ready.dev/openapi.json
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)

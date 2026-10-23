@@ -59,3 +59,9 @@ x-service-info:
     homepage: https://agent-ready.dev
     apiReference: https://agent-ready.dev/api
     llms: https://agent-ready.dev/llms.txt
+x-provenance:
+  method: harvested
+  publisher: Agent Ready
+  source: https://agent-ready.dev/openapi.json
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)
