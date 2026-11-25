@@ -66,7 +66,7 @@
 
 Agent Ready (agent-ready.dev) is an independent AI agent-readability scanner built and maintained by Mark Lavercombe. It scores any public website against the Vercel Agent Readability Spec, the llmstxt.org specification and the agent-protocol manifests (MCP server cards, A2A agent cards, agents.json, agent-permissions.json, UCP, ACP, x402, MPP, AP2, NLWeb, RFC 9727 API catalog, Web Bot Auth, Agent Skills Discovery) — 72 checks plus a separate 23-check WCAG 2.2 accessibility sub-score — and returns a 0-100 score with per-check remediation. The same scanner is exposed as an OpenAPI 3.1 REST API at https://agent-ready.dev/api/v1 (Pro API keys, Idempotency-Key on writes, RFC 8594 Sunset policy), a hosted Streamable HTTP MCP server at /api/v1/mcp plus a no-auth MCP Apps endpoint, an A2A 1.0 agent card, a stdio MCP package and CLI on npm, JavaScript and Python client SDKs, a GitHub Action, and pay-per-scan x402/MPP micropayments in USDC on Base. Free ($0) and Pro ($19/month) plans.
 
-**Areas:** Agents · Agent Readiness · Website Scanning · Developer Tools · MCP · A2A · llms-txt · x402 · NLWeb · Accessibility · Agent-Native · Australia
+**Areas:** Agents · Agent Readiness · Website Scanning · Developer Tools · MCP · A2A · llms.txt · x402 · NLWeb · Accessibility · Agent-Native · Australia
 
 ## Agent Ready on APIs.io
 
@@ -95,38 +95,51 @@ Model Context Protocol servers that expose the API to agents.
 
 Which operations an agent can call, which act, and which need a human in the loop.
 
-- [Agent Ready Dev Agentic Access](https://apis.io/agentic-access/agent-ready-dev/agent-ready-dev-agentic-access/)
+- [Agent Ready Agentic Access](https://apis.io/agentic-access/agent-ready-dev/agent-ready-dev-agentic-access/)
 
 #### Overlays (1)
 
 OpenAPI overlays, including conversational phrasing for each operation.
 
-- [Agent Ready Dev Openapi Overlay](https://apis.io/overlays/agent-ready-dev/agent-ready-dev-openapi-overlay/)
+- [Agent Ready Openapi Overlay](https://apis.io/overlays/agent-ready-dev/agent-ready-dev-openapi-overlay/)
+
+#### Governance rules (1)
+
+Spectral rulesets for the provider's contracts.
+
+- [Agent Ready API Rules](https://apis.io/rules/agent-ready-dev/agent-ready-dev-rules/)
 
 #### Security (2)
 
 Authentication, trust centre, and vulnerability disclosure.
 
-- [Agent Ready Dev Authentication](https://apis.io/security/agent-ready-dev/agent-ready-dev-authentication/)
-- [Agent Ready Dev Domain Security](https://apis.io/security/agent-ready-dev/agent-ready-dev-domain-security/)
+- [Agent Ready Authentication](https://apis.io/security/agent-ready-dev/agent-ready-dev-authentication/)
+- [Agent Ready Domain Security](https://apis.io/security/agent-ready-dev/agent-ready-dev-domain-security/)
 
 #### OAuth scopes (1)
 
 The permissions the API asks for.
 
-- [Agent Ready Dev Scopes](https://apis.io/scopes/agent-ready-dev/agent-ready-dev-scopes/)
+- [Agent Ready Scopes](https://apis.io/scopes/agent-ready-dev/agent-ready-dev-scopes/)
 
-#### Plans and pricing (1)
+#### Plans and pricing (2)
 
 Published plans, tiers and prices.
 
-- [Agent Ready Dev Plans Pricing](https://apis.io/plans/agent-ready-dev/agent-ready-dev-plans-pricing/)
+- [Agent Ready Plans Pricing](https://apis.io/plans/agent-ready-dev/agent-ready-dev-plans-pricing/)
+- [Agent Ready Price Estimates](https://apis.io/plans/agent-ready-dev/agent-ready-dev-price-estimates/)
 
 #### Rate limits (1)
 
 Published request limits.
 
-- [Agent Ready Dev Rate Limits](https://apis.io/rate-limits/agent-ready-dev/agent-ready-dev-rate-limits/)
+- [Agent Ready Rate Limits](https://apis.io/rate-limits/agent-ready-dev/agent-ready-dev-rate-limits/)
+
+#### FinOps (1)
+
+What the API costs to run, by operation.
+
+- [Agent Ready Finops](https://apis.io/finops/agent-ready-dev/agent-ready-dev-finops/)
 
 ## Where to find this API
 
@@ -146,18 +159,18 @@ Links to the company's own pages. This repository publishes no copy of their spe
 
 ## API Evangelist rating
 
-**Kin Score 63.8** — strong · rubric 0.25.0 · scored 2026-10-23
+**Kin Score 69.0** — exemplar · rubric 0.28.1 · scored 2026-11-21
 
 | Facet | Score |
 |---|---|
-| Discoverability | 80.0 |
-| Contract quality | 50.0 |
-| Contract governance | 18.2 |
-| Operational transparency | 44.7 |
+| Discoverability | 90.0 |
+| Contract quality | 59.4 |
+| Contract governance | 31.8 |
+| Operational transparency | 50.0 |
 | Developer ergonomics | 83.3 |
-| Access clarity | 76.3 |
+| Access clarity | 78.7 |
 
-**Agent readiness 74.4** — agent-native
+**Agent readiness 73.4** — agent-native
 
 | Agent-readiness dimension | Result |
 |---|---|
@@ -173,7 +186,7 @@ Links to the company's own pages. This repository publishes no copy of their spe
 | Event Surface Described | — |
 | Agent Skills | yes |
 | Well Known Catalog | yes |
-| Consent Identity | yes |
+| Consent Identity | deployed |
 | Agent Card | conformant |
 | Dry Run Mode | — |
 | Delegated Identity | — |
@@ -182,8 +195,12 @@ Links to the company's own pages. This repository publishes no copy of their spe
 | Agentic Commerce | self |
 | Pagination Ratio | paginated |
 | Operation Distinctiveness | distinct |
+| MCP Tool Quality | na |
+| Onboarding Descriptor | — |
+| Dns Aid Index | yes |
+| Markdown Negotiation | yes |
 
-**Regulatory alignment 42.2** — Horizontal (data, software, accessibility, platform)
+**Regulatory alignment 36.3** — Horizontal (data, software, accessibility, platform)
 
 The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/agent-ready-dev/](https://apis.io/providers/agent-ready-dev/).
 
